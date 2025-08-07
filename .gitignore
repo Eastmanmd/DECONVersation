@@ -1,0 +1,12 @@
+# Ignore specific files
+data/pseudobulk_train_set.csv
+data/pseudobulk_test_set.csv
+
+# Ignore all CSVs in a folder
+data/*.csv
+
+# Ignore a folder and its contents
+logs/
+outputs/
+
+
