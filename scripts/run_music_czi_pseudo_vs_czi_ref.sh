@@ -5,4 +5,4 @@
 #SBATCH --mem=128G
 
 # Run your R script
-Rscript ~/scripts/POLY/P1000/scripts/music_czi_pseudobulk_vs_czi_ref.R
+Rscript /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/scripts/music_czi_pseudobulk_vs_czi_ref.R

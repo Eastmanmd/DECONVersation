@@ -11,7 +11,7 @@ library(stringr)
 
 
 # Load bulk counts.
-genes_counts <- read.csv("/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/data/pseudobulk_test_set.csv", header = T, check.names = F)
+genes_counts <- read.csv("/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv_data/pseudobulk_test_set.csv", header = T, check.names = F)
 
 
 #Convert gene counts to integer (from RSEM so originally was not).
@@ -69,7 +69,7 @@ singlespinal.sce <-  as.SingleCellExperiment(singlespinal.sce)
 #Here "projid" is a proxy for patient/sample in the single cell data.
 results <- music_prop(bulk.mtx = all_bulk_samples,
                       sc.sce = singlespinal.sce,
-                      clusters = 'newtype',
+                      clusters = 'heca_lineage',
                       samples = 'id',
                       verbose=TRUE)
 #clusters: newlineage
@@ -81,6 +81,5 @@ results <- music_prop(bulk.mtx = all_bulk_samples,
 #saveRDS(results,file="~/scripts/POLY/P1000/music/music_prop_endo_deconvolution_vs_endo_reference_with_uterus_lineage_no_nuclei_v3_1.rds")
 
 #Write proportion matrix to CSV.
-write.csv(results[["Est.prop.weighted"]],file="~/scripts/POLY/P1000/data/pseudobulk/music_prop_pseudobulk_czi_vs_czi_single_cell_ref_estimated_newtype.csv")
-#write.csv(results[["Est.prop.weighted"]],file="~/scripts/POLY/P1000/music/music_prop_endo_deconvolution_vs_endo_reference_with_uterus_lineage_no_nuclei_v3_1.csv")
+write.csv(results[["Est.prop.weighted"]],file="/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/outputs/music_prop_pseudobulk_czi_vs_czi_single_cell_ref_estimated_heca_lineage.csv")
 
