@@ -12,7 +12,7 @@ library(stringr)
 
 # Load bulk counts.
 genes_counts <- read.csv("/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv_data/pseudobulk_test_set.csv", header = T, check.names = F)
-
+rownames(genes_counts) <- paste0("Sample_", rownames(genes_counts)) # Add rownames to table
 
 #Convert gene counts to integer (from RSEM so originally was not).
 for(i in 1:ncol(genes_counts))
@@ -62,6 +62,10 @@ common_genes <- intersect(rownames(all_bulk_samples), rownames(singlespinal.sce)
 all_bulk_samples <- all_bulk_samples[common_genes, ]
 singlespinal.sce <- singlespinal.sce[common_genes, ]
 
+# Limit single cell data to just three samples
+singlespinal.sce <- subset(singlespinal.sce, subset = id %in% c("B2-CZI08N", "B3-CZI11N", "B3-CZI05N"))
+
+
 # Convert to SingleCellExperiment object
 singlespinal.sce <-  as.SingleCellExperiment(singlespinal.sce)
 
@@ -81,5 +85,5 @@ results <- music_prop(bulk.mtx = all_bulk_samples,
 #saveRDS(results,file="~/scripts/POLY/P1000/music/music_prop_endo_deconvolution_vs_endo_reference_with_uterus_lineage_no_nuclei_v3_1.rds")
 
 #Write proportion matrix to CSV.
-write.csv(results[["Est.prop.weighted"]],file="/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/outputs/music_prop_pseudobulk_czi_vs_czi_single_cell_ref_estimated_heca_lineage.csv")
+write.csv(results[["Est.prop.weighted"]],file="/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/outputs/music_prop_pseudobulk_czi_vs_czi_single_cell_ref_estimated_heca_lineage_3_train_samples.csv")
 
