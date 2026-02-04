@@ -1,0 +1,3 @@
+Loaded Training latent embeddings with shape: (4000, 1024)
+Loaded Training cell-type proportions with shape: (4000, 4)
+Aligned training data: 0 samples

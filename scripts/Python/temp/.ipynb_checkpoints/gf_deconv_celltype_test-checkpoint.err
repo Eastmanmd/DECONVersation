@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/notebooks/celltype/create_pseudobulk_extract_embed_gf.py", line 329, in <module>
+    main(args)
+  File "/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/notebooks/celltype/create_pseudobulk_extract_embed_gf.py", line 236, in main
+    pb_adata = sc.AnnData(pseudobulk_df)
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/anndata/_core/anndata.py", line 254, in __init__
+    self._init_as_actual(
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/anndata/_core/anndata.py", line 388, in _init_as_actual
+    X = ensure_df_homogeneous(X, "X")
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/anndata/utils.py", line 300, in ensure_df_homogeneous
+    arr = df.sparse.to_coo().tocsr()
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/pandas/core/arrays/sparse/accessor.py", line 359, in to_coo
+    dtype = find_common_type(self._parent.dtypes.to_list())
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/pandas/core/dtypes/cast.py", line 1450, in find_common_type
+    raise ValueError("no types given")
+ValueError: no types given

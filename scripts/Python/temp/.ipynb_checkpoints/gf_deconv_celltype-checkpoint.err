@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/notebooks/celltype/geneformer_ml_deconv_celltype.py", line 32, in <module>
+    adata: anndata.AnnData,
+NameError: name 'anndata' is not defined. Did you mean: 'AnnData'?

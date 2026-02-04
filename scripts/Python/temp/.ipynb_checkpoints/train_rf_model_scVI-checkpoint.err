@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/notebooks/lineage/train_random_forest_regr_deconv.py", line 143, in <module>
+    main()
+  File "/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/notebooks/lineage/train_random_forest_regr_deconv.py", line 111, in main
+    val_pred_df.to_csv(args.out_val_pred)
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/pandas/io/formats/format.py", line 1014, in to_csv
+    csv_formatter.save()
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 251, in save
+    with get_handle(
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/pandas/io/common.py", line 749, in get_handle
+    check_parent_directory(str(handle))
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/pandas/io/common.py", line 616, in check_parent_directory
+    raise OSError(rf"Cannot save file into a non-existent directory: '{parent}'")
+OSError: Cannot save file into a non-existent directory: '/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv_data_lineage/metrics'

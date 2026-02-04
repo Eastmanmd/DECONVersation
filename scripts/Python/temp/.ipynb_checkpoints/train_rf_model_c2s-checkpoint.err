@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/notebooks/celltype/train_random_forest_regr_deconv.py", line 143, in <module>
+    main()
+  File "/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/notebooks/celltype/train_random_forest_regr_deconv.py", line 72, in main
+    X_train, X_val, y_train, y_val = train_test_split(
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/sklearn/utils/_param_validation.py", line 213, in wrapper
+    return func(*args, **kwargs)
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 2785, in train_test_split
+    n_train, n_test = _validate_shuffle_split(
+  File "/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/lib/python3.10/site-packages/sklearn/model_selection/_split.py", line 2415, in _validate_shuffle_split
+    raise ValueError(
+ValueError: With n_samples=0, test_size=0.2 and train_size=None, the resulting train set will be empty. Adjust any of the aforementioned parameters.

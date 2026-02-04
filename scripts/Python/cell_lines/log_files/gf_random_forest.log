@@ -1,0 +1,32 @@
+2025-11-23 23:21:16,331 Load data
+2025-11-23 23:21:16,331 Memory used: 169.65234375 MB
+2025-11-23 23:21:17,366 Split data into train and val
+2025-11-23 23:21:17,366 Memory used: 245.89453125 MB
+2025-11-23 23:21:17,400 Initialize base model
+2025-11-23 23:21:17,400 Memory used: 281.3359375 MB
+2025-11-23 23:21:17,400 Performing grid search
+2025-11-23 23:21:17,401 Memory used: 281.3359375 MB
+2025-11-24 00:42:16,221 Grid search done
+2025-11-24 00:42:16,222 Memory used: 523.8359375 MB
+2025-11-24 00:42:16,222 Evaluate on validation data
+2025-11-24 00:42:16,222 Memory used: 523.8359375 MB
+2025-11-24 00:42:16,509 Saving val predictions
+2025-11-24 00:42:16,509 Memory used: 524.16015625 MB
+2025-11-24 00:42:16,532 Saved val proportion
+2025-11-24 00:42:16,532 Memory used: 524.2578125 MB
+2025-11-24 00:42:16,532 Refit model on full train data
+2025-11-24 00:42:16,532 Memory used: 524.2578125 MB
+2025-11-24 00:43:18,263 Done: RF model re-fit on train data
+2025-11-24 00:43:18,264 Memory used: 764.8828125 MB
+2025-11-24 00:43:18,264 Saving trained model
+2025-11-24 00:43:18,264 Memory used: 764.8828125 MB
+2025-11-24 00:43:18,770 Done: Saved trained model
+2025-11-24 00:43:18,770 Memory used: 769.06640625 MB
+2025-11-24 00:43:19,387 Predict on test data
+2025-11-24 00:43:19,387 Memory used: 813.94921875 MB
+2025-11-24 00:43:19,740 Prediction done
+2025-11-24 00:43:19,740 Memory used: 816.4296875 MB
+2025-11-24 00:43:19,741 Saving test predictions
+2025-11-24 00:43:19,741 Memory used: 816.4296875 MB
+2025-11-24 00:43:19,769 ✅ Saved test predictions
+2025-11-24 00:43:19,769 Memory used: 816.56640625 MB

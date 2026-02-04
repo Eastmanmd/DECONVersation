@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH --job-name=create_sig_mat
+#SBATCH --output=logs/create_sig_mat.log   
+#SBATCH --error=logs/create_sig_mat.err   
+#SBATCH --time=72:00:00
+#SBATCH --mem=64G                     
+#SBATCH --partition=cpu  
+
+# Run the script
+/nfs/sw/easybuild/software/custom-conda/geneformer-1.0/bin/python /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/notebooks/lineage/create_signature_matrix_for_nnls.py \
+--adata_path /gpfs/commons/groups/compbio/projects/CZI_endom/RNA_temp/62_harmony_102224_Seuratv34_newannot_counts.h5ad \
+--sample_col id \
+--sample_ids B15-CZI251N B4P1-CZI01N B3-CZI11N B16-CZI182N \
+--celltype_col heca_lineage \
+--celltypes Immune Endothelial Epithelial Mesenchymal \
+--groupby heca_lineage \
+--output_path /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv_data_lineage/train/signature_matrix_for_nnls.csv
