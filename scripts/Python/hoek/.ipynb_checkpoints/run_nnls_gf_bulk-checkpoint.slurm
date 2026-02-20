@@ -8,6 +8,6 @@
 
 # Run script
 /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/scripts/Python/run_nnls.py \
---pseudobulk /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv_data/hoek/train/gf_pseudobulk_embed_complete.csv \
---signature /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv_data/hoek/train/gf_embeddings_signature_matrix_for_nnls_complete.csv \
---output /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv_data_hoek/gf_nnls_cell_proportions.csv
+--pseudobulk /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv_data/pseudo_bulk/gf_czi_pseudobulk_embed_zeroshot_cls_emb_0.csv \
+--signature /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv_data/pseudo_bulk/gf_czi_sig_mat_pseudobulk_embed_zeroshot_cls_emb_0.csv \
+--output /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv_data/pseudo_bulk/gf_pb_nnls_cell_proportions_finetuned_cls_emb_0.csv

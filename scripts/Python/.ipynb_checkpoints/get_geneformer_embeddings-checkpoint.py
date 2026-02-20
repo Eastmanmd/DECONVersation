@@ -120,11 +120,20 @@ def main():
     # ----------------------------- #
     # Extract embeddings
     # ----------------------------- #
-    print("\nExtracting Geneformer embeddings...")
+
+    # temp = pu.quant_layers(model)
+
+    # print("printing quant layers")
+    # print(temp)
+    # print(pu.quant_layers(model))
+    
+
+    # try cls, cell
+    print("\n Extracting Geneformer embeddings...")
     state_embs_dict = get_embs(
         model,
         filtered_input_data,
-        emb_mode="cell",
+        emb_mode="cls",
         layer_to_quant=0,
         pad_token_id=pad_token_id,
         token_gene_dict=token_gene_dict,
@@ -135,8 +144,6 @@ def main():
     # Convert embeddings to DataFrame
     tempout = pd.DataFrame(state_embs_dict.cpu().numpy())
     df_meta = filtered_input_data.to_pandas()
-    #tempout.index = df_meta["cell_type"] + "_" + df_meta.index.astype(str)
-    #tempout = tempout.reset_index(drop=True)
 
     # Save embeddings
     tempout.index = pseudobulk_df.index
