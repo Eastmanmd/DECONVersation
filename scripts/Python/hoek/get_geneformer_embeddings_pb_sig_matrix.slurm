@@ -8,8 +8,7 @@
 #SBATCH --gres=gpu 
 
 
-# Run script
-#   
+# Run script  
 
 /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/scripts/Python/get_geneformer_embeddings.py \
 --input_csv /gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv_data/pseudo_bulk/pb_sig_matrix.csv \
