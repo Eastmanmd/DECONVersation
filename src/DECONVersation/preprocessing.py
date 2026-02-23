@@ -154,7 +154,97 @@ def gene_id_name_map(
 # --------------------------------
 # Convert symbol to ensembl
 # --------------------------------
-def get_signature_matrix()
+def create_signature_matrix(
+    adata,
+    sample_col,
+    sample_ids,
+    celltype_col,
+    celltypes,
+    groupby,
+    output_path=None,
+):
+    """
+    Create a gene expression signature matrix from a single-cell AnnData object.
+    
+    Parameters
+    ----------
+    adata : AnnData
+        Input single-cell AnnData object.
 
+    sample_col : str
+        Column in `adata.obs` containing sample identifiers.
 
+    sample_ids : list
+        List of sample IDs to retain.
+
+    celltype_col : str
+        Column in `adata.obs` containing cell type labels.
+
+    celltypes : list
+        List of cell types to retain.
+
+    groupby : str
+        Column in `adata.obs` used to group cells when computing
+        average gene expression (e.g., cell type).
+
+    output_path : str, optional
+        If provided, saves the resulting signature matrix as CSV.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Signature matrix of shape (genes × groups),
+        where rows are genes and columns are groups.
+    """
+
+    # ----------------------------
+    # Prep data
+    # ----------------------------
+
+    # validate columns in anndata
+    for col in [sample_col, celltype_col, groupby]:
+        if col not in adata.obs.columns:
+            raise ValueError(f"Column '{col}' not found in adata.obs.")
+
+    
+    # Subset by  select samples
+    adata = adata[adata.obs[sample_col].isin(sample_ids)].copy()
+    if adata.n_obs == 0:
+        raise ValueError("No cells remain after subsetting by sample_ids.")
+
+    # Subset by select cell types
+    adata = adata[adata.obs[celltype_col].isin(celltypes)].copy()
+    if adata.n_obs == 0:
+        raise ValueError("No cells remain after subsetting by celltypes.")
+
+    # Convert expression matrix
+    if hasattr(adata.X, "toarray"):
+        expr = pd.DataFrame(
+            adata.X.toarray(),
+            index=adata.obs_names,
+            columns=adata.var_names,
+        )
+    else:
+        expr = pd.DataFrame(
+            adata.X,
+            index=adata.obs_names,
+            columns=adata.var_names,
+        )
+
+    # Add grouping variable
+    expr[groupby] = adata.obs[groupby].values
+
+    # ----------------------------
+    # Get signature matrix
+    # ----------------------------
+    signature = expr.groupby(groupby).mean().T
+
+    # ----------------------------
+    # 6. Save if requested
+    # ----------------------------
+    if output_path is not None:
+        signature.to_csv(output_path)
+        print(f" Signature matrix saved to: {output_path}")
+
+    return signature
     
