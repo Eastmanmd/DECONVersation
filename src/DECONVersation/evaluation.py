@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
-
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy.stats import pearsonr, spearmanr
 
 # ============================================
 # Compute Root Mean Squared Error
@@ -225,4 +227,118 @@ def compute_correlation(
     else:
         return overall_corr
 
+
+
+# ============================================
+# Plot RMSE vs Correlation Per Cell Type
+# ============================================
+def plot_rmse_vs_corr_by_celltype(
+    true_df: pd.DataFrame,
+    pred_df: pd.DataFrame,
+    method: str = "pearson",
+    dot_size: int = 40,
+    annotate: bool = True,
+    save_path: str | None = None,
+):
+    """
+    Compute RMSE and correlation per cell type (class),
+    then plot correlation (x-axis) vs RMSE (y-axis).
+
+    Parameters
+    ----------
+    true_df : pd.DataFrame
+        Ground truth proportions (samples × cell types)
+
+    pred_df : pd.DataFrame
+        Predicted proportions (samples × cell types)
+
+    method : str, default="pearson"
+        Correlation method:
+            - "pearson"
+            - "spearman"
+
+    dot_size : int, default=60
+        Size of scatter points.
+
+    annotate : bool, default=True
+        Whether to label points with class names.
+
+    save_path : str, optional
+        If provided, saves figure to this path.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing RMSE and correlation per class.
+    """
+
+    # Ensure corrected method is selected
+    if method not in ["pearson", "spearman"]:
+        raise ValueError("method must be 'pearson' or 'spearman'.")
+
+    # Align samples and cell types
+    common_samples = true_df.index.intersection(pred_df.index)
+    common_cols = true_df.columns.intersection(pred_df.columns)
+
+    if len(common_samples) == 0 or len(common_cols) == 0:
+        raise ValueError("No overlapping samples or cell types found.")
+
+    true_aligned = true_df.loc[common_samples, common_cols]
+    pred_aligned = pred_df.loc[common_samples, common_cols]
+
+    results = []
+
+    for col in common_cols:
+        x = true_aligned[col].values
+        y = pred_aligned[col].values
+
+        # RMSE
+        rmse = np.sqrt(np.mean((x - y) ** 2))
+
+        # Correlation
+        if method == "pearson":
+            corr, _ = pearsonr(x, y)
+        else:
+            corr, _ = spearmanr(x, y)
+
+        results.append((col, rmse, corr))
+
+    metrics_df = pd.DataFrame(
+        results,
+        columns=["cell_type", "rmse", "correlation"]
+    ).set_index("cell_type")
+
+    # Plot
+    plt.figure(figsize=(6, 5))
+    sns.scatterplot(
+        data=metrics_df,
+        x="correlation",
+        y="rmse",
+        s=dot_size
+    )
+
+    if annotate:
+        for cell_type, row in metrics_df.iterrows():
+            plt.text(
+                row["correlation"],
+                row["rmse"],
+                cell_type,
+                fontsize=14,
+                ha="left",
+                va="bottom"
+            )
+
+    plt.xlabel(f"Cor ({method})", fontsize = 18)
+    plt.ylabel("RMSE", fontsize = 18)
+    plt.title(" ")
+
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path, dpi=600, bbox_inches="tight")
+
+    plt.show()
 
