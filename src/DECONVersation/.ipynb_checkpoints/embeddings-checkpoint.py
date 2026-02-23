@@ -211,14 +211,6 @@ def extract_geneformer_embs(
 # --------------------------------
 # Extract cell2sentence embeddings 
 # --------------------------------
-
-input_csv = "/gpfs/commons/groups/compbio/projects/rf_projects/deconv_data/deconvBench/tm_full_signature_matrix_symbol.csv"
-c2s_save_dir1="/gpfs/commons/groups/compbio/projects/rf_projects/deconv_data/GSE220608/c2s/410m"
-c2s_save_name1 = "tm_full_signature_9090"
-
-model_save_dir1 = "/gpfs/commons/groups/compbio/projects/rf_projects/deconv_data/GSE220608/c2s/410m/mouse"
-model_save_name1 = "mouse_embedding_prediction"
-
 def get_embedding_c2s(
     input_csv: str,
     c2s_save_dir: str,
