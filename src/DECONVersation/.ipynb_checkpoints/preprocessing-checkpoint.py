@@ -95,9 +95,66 @@ def load_and_prep_data(
 
     return adata
 
+# --------------------------------
+# Convert Ensembl to Symbol
+# --------------------------------
+def ensembl_to_symbol(gene_symbol_id_df, ensembl_list):
+    mapping = dict(zip(gene_symbol_id_df["gene_id"], gene_symbol_id_df["gene_name"]))
+    return [mapping.get(eid) for eid in ensembl_list]
 
-def gene_id_name_map()
+    
+# --------------------------------
+# Convert symbol to ensembl
+# --------------------------------
+def symbol_to_ensembl(gene_symbol_id_df, symbol_list):
+    mapping = dict(zip(gene_symbol_id_df["gene_name"], gene_symbol_id_df["gene_id"]))
+    return [mapping.get(sym) for sym in symbol_list]
 
+
+# ---------------------------------------------
+# Mapping function to convert to symbol/ensembl
+# ---------------------------------------------
+def gene_id_name_map(
+    gene_list,
+    mode) :
+
+    """
+    Function to convert ensembl ids to symols or symbols to ids
+
+    Parameters
+    ----------
+    gene_list : [str]
+        Gene list (either ensembl ids or gene symbols)
+        
+    mode : str
+        Preparation mode. Must be either:
+        - "to_ensembl"
+        - "to_symbol"
+
+    Returns
+    -------
+    gene_list_mapped : [str]
+        Gene list with mapped ensembl ids or symbols
+
+    """
+
+    # Load dataframe with both ensembl and gene_symbols
+    gene_ids = pd.read_csv("/gpfs/commons/groups/compbio/projects/CZI_endom/RNA_temp/gene_names_gene_ids_czi_endo.csv", index_col=False)
+
+    if mode == "to_ensembl":
+        gene_list_mapped = ensembl_to_symbol(gene_ids, gene_list)
+
+    elif mode == "to_symbol":
+        gene_list_mapped = symbol_to_ensembl(gene_ids, gene_list)
+
+    return gene_list_mapped
+
+
+
+# --------------------------------
+# Convert symbol to ensembl
+# --------------------------------
+def get_signature_matrix()
 
 
     
