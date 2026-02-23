@@ -1,3 +1,35 @@
+# ===============================
+# Standard Libraries
+# ===============================
+import os
+import shutil
+import pickle
+import logging
+import tracemalloc
+
+# ===============================
+# For Data/Model Manipulation
+# ===============================
+import numpy as np
+import pandas as pd
+import scanpy as sc
+import scipy.sparse as sp
+import torch
+
+# ===============================
+# Geneformer
+# ===============================
+from geneformer import TranscriptomeTokenizer
+from geneformer import pretrainer_utils as pu
+from geneformer.emb_extractor import get_embs
+
+# ===============================
+# Cell2Sentence
+# ===============================
+import cell2sentence as cs
+from cell2sentence.inference import embed_cells
+
+
 # -----------------------------
 # Extract geneformer embeddings 
 # -----------------------------
@@ -17,7 +49,7 @@ def extract_embs(
 
     if mode == "c2s":
         emb = get_embedding_c2s(
-            input_csv: input_csv,
+            input_csv = input_csv,
             c2s_save_dir = temp_output_dir,
             c2s_save_name = "c2s_object",
             model_path1 = "./2026-02-08-08_41_26_finetune_cell_type_prediction/checkpoint-9090",
@@ -70,10 +102,10 @@ def extract_geneformer_embs(
 
     # Ensure column names are Ensembl IDs
     if not all(col.startswith("ENSG") for col in bulk_df.columns):
-    raise ValueError(
-        "Input CSV columns must be Ensembl gene IDs (e.g., ENSG00000123456). "
-        "Detected non-Ensembl column names."
-    )
+        raise ValueError(
+            "Input CSV columns must be Ensembl gene IDs (e.g., ENSG00000123456). "
+            "Detected non-Ensembl column names."
+        )
 
     # -----------------------------
     # Convert to AnnData
@@ -81,7 +113,7 @@ def extract_geneformer_embs(
     pb_adata = sc.AnnData(bulk_df)
     pb_adata.obs["cell_type"] = "unknown" 
     pb_adata.obs["n_counts"] = np.sum(pb_adata.X, axis=1).tolist()
-    pb_adata.var["ensembl_id"] = pb_adata.var_name
+    pb_adata.var["ensembl_id"] = pb_adata.var_names
     pb_adata.X = sp.csc_matrix(pb_adata.X)
 
     # Save temporary .h5ad
@@ -351,11 +383,11 @@ def get_embedding_c2s(
     embeddings_df = pd.DataFrame(embedded_cells)
 
     if reorder_obs_name:
-        embeddings_df["name"] = [f"sample_{i}" for i in range(1, df.shape[0] + 1)]
+        embeddings_df["name"] = [f"sample_{i}" for i in range(1, embeddings_df.shape[0] + 1)]
     else:
         embeddings_df["name"] = adata.obs_names.to_list()
 
-    embeddings_df = df.set_index("name")
+    embeddings_df = embeddings_df.set_index("name")
 
     if log:
         logger.info("Generating embedding complete")
