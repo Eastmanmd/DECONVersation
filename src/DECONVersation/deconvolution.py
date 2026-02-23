@@ -7,7 +7,7 @@ from scipy.optimize import nnls
 # ============================================
 # Non-Negative Least Squares (NNLS)
 # ============================================
-def run_nnls_deconvolution(
+def run_deconv_nnls(
     bulk_df: pd.DataFrame,
     signature_df: pd.DataFrame,
     normalize: bool = True,
