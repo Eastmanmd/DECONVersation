@@ -1,4 +1,4 @@
-# DECONVersation <img src="images/deconversation.png" width="100">
+# DECONVersation <img src="images/deconversation.png" width="200">
 
 DECONVersation is a tool designed for the deconvolution of bulk RNA-seq data using embeddings derived from large-scale, LLM-based foundation models. DECONVersation produces robust  cell type proportions by leveraging these high-dimensional embeddings to mitigate batch effects typically present in single-cell reference signature matrices.
 
