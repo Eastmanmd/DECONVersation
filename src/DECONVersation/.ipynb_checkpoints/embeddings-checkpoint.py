@@ -20,41 +20,46 @@ import torch
 # Geneformer
 # ===============================
 from geneformer import TranscriptomeTokenizer
-from geneformer import pretrainer_utils as pu
+from geneformer import perturber_utils as pu
 from geneformer.emb_extractor import get_embs
 
 # ===============================
 # Cell2Sentence
 # ===============================
-import cell2sentence as cs
-from cell2sentence.inference import embed_cells
+#import cell2sentence as cs
+#from cell2sentence.inference import embed_cells
 
 
 # -----------------------------
 # Extract geneformer embeddings 
 # -----------------------------
 def extract_embs(
-    input_csv,
+    bulk_df,
     mode,
     temp_output_dir, 
-    delete_temp_files = True
+    model_path,
+    delete_temp_files = False
 ):
     if mode == "geneformer":
         emb = extract_geneformer_embs(
-            input_csv = input_csv,
+            bulk_df = bulk_df,
             token_output_dir = temp_output_dir,
             token_output_name = "gf_tokens",
+            geneformer_model_path = model_path,
             delete_temp_files = delete_temp_files
         )
 
-    if mode == "c2s":
+    elif mode == "c2s":
         emb = get_embedding_c2s(
-            input_csv = input_csv,
+            bulk_df = bulk_df,
             c2s_save_dir = temp_output_dir,
             c2s_save_name = "c2s_object",
-            model_path1 = "./2026-02-08-08_41_26_finetune_cell_type_prediction/checkpoint-9090",
+            model_path1 = model_path,
             model_save_dir = temp_output_dir,
             model_save_name = "c2s_model")
+
+    else:
+        raise ValueError("mode must be either 'geneformer' or 'c2s' ")
         
     return emb
 
@@ -65,14 +70,14 @@ def extract_embs(
 # Extract geneformer embeddings 
 # -----------------------------
 def extract_geneformer_embs(
-    input_csv,
+    bulk_df,
     token_output_dir,
     token_output_name,
     delete_temp_files,
-    gene_median_file="./geneformer_pkl/gene_median_dictionary_gc95M.pkl",
-    token_dictionary_file="./geneformer_pkl/token_dictionary_gc95M.pkl",
-    gene_mapping_file="./geneformer_pkl/ensembl_mapping_dict_gc95M.pkl",
-    geneformer_model_path="ctheodoris/Geneformer"
+    geneformer_model_path,
+    gene_median_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/gene_median_dictionary_gc95M.pkl",
+    token_dictionary_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/token_dictionary_gc95M.pkl",
+    gene_mapping_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/ensembl_mapping_dict_gc95M.pkl" 
     
 ):
 
@@ -97,8 +102,8 @@ def extract_geneformer_embs(
         Path to pretrained Geneformer model directory.
     """
 
-    print("Loading pseudobulk CSV...")  # Add code to ensure that the colnames are ensemble IDs
-    bulk_df = pd.read_csv(input_csv, index_col=0)
+    #print("Loading pseudobulk CSV...")  # Add code to ensure that the colnames are ensemble IDs
+    #bulk_df = pd.read_csv(input_csv, index_col=0)
 
     # Ensure column names are Ensembl IDs
     if not all(col.startswith("ENSG") for col in bulk_df.columns):
@@ -181,8 +186,8 @@ def extract_geneformer_embs(
     state_embs_dict = get_embs(
         model,
         filtered_input_data,
-        emb_mode="cls",
-        layer_to_quant=0,
+        emb_mode="cell",
+        layer_to_quant=18,
         pad_token_id=pad_token_id,
         token_gene_dict=token_gene_dict,
         special_token=True,
@@ -212,7 +217,7 @@ def extract_geneformer_embs(
 # Extract cell2sentence embeddings 
 # --------------------------------
 def get_embedding_c2s(
-    input_csv: str,
+    bulk_df: str,
     c2s_save_dir: str,
     c2s_save_name: str,
     model_path: str,
@@ -297,26 +302,24 @@ def get_embedding_c2s(
     # -----------------------------
     # Load data
     # -----------------------------
-    data = pd.read_csv(input_csv, index_col=0)
-
     if transpose:
-        data = data.T
+        bulk_df = bulk_df.T
 
     if gene_name_rm is not None:
-        data.columns = data.columns.str.replace(gene_name_rm, "", regex=True)
+        bulk_df.columns = data.columns.str.replace(gene_name_rm, "", regex=True)
 
     if use_genes is not None:
         missing = set(use_genes) - set(data.columns)
         if missing:
             raise ValueError(f"Some requested genes not found: {missing}")
-        data = data[use_genes]
+        bulk_df = bulk_df[use_genes]
 
-    data = data.loc[:, ~data.columns.duplicated()]
+    bulk_df = bulk_df.loc[:, ~bulk_df.columns.duplicated()]
 
     # -----------------------------
     # Convert to AnnData
     # -----------------------------
-    adata = sc.AnnData(data)
+    adata = sc.AnnData(bulk_df)
 
     if gene_name is not None:
         adata.var_names = gene_name
