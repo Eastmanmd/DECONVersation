@@ -8,18 +8,18 @@ import matplotlib.pyplot as plt
 import anndata
 
 def load_and_prep_data(
-    path: str,
+    adata: ad.AnnData,
     mode: str,
-    organism: str,
     cell_type_col: str,
+    organism: str = ""   
 ):
     """
     Load and prepare an AnnData object for Geneformer or Cell2Sentence workflows.
 
     Parameters
     ----------
-    path : str
-        Path to input .h5ad file.
+    adata : str
+        adata object
     mode : str
         Preparation mode. Must be either:
         - "geneformer"
@@ -36,14 +36,6 @@ def load_and_prep_data(
         Processed AnnData object formatted for the selected embedding model.
 
     """
-
-    import scanpy as sc
-    import numpy as np
-
-    # -----------------------------
-    # Load AnnData object
-    # -----------------------------
-    adata = sc.read_h5ad(path)
 
     # Validate required column exists
     if cell_type_col not in adata.obs.columns:
@@ -80,6 +72,10 @@ def load_and_prep_data(
 
     # Cell2Sentence Preparation
     elif mode == "c2s":
+
+        # Require input organism 
+        if organism.strip() == "":
+            raise ValueError("`organism` must be provided, E.g 'Homo Sapiens' if human")
 
         # Required metadata fields for C2S arrow conversion
         adata.obs["organism"] = organism
@@ -146,6 +142,11 @@ def gene_id_name_map(
 
     elif mode == "to_symbol":
         gene_list_mapped = symbol_to_ensembl(gene_ids, gene_list)
+
+    else:
+        raise ValueError(
+            "mode must be either 'to_ensembl' or 'to_symbol'"
+        )
 
     return gene_list_mapped
 
