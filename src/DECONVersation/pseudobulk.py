@@ -185,7 +185,7 @@ def generate_pseudobulk(
         proportions_data_list.append(props)
         
         sample_names.append(f"{target_type}_PB{i+1}")
-    
+            
     # Handle case where no pseudobulks were created
     if not pseudobulk_data_list:
         warnings.warn("No pseudobulks were created; returning empty DataFrames.")
