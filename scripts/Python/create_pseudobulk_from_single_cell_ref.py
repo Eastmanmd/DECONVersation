@@ -13,8 +13,7 @@ python create_proportional_pseudobulks.py \
   --target_proportion_min 0.4 \
   --target_proportion_max 0.85 \
   --out_prefix czi_pb
-
-
+"""
 
 import argparse
 import warnings
@@ -24,7 +23,6 @@ import scanpy as sc
 import anndata as ad
 import scipy.sparse as sp
 from sklearn.utils import check_random_state
-"""
 
 def create_proportional_pseudobulks(
     adata: ad.AnnData,
