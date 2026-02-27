@@ -9,6 +9,8 @@ import scipy
 import scipy.sparse as sp 
 import anndata
 from anndata import AnnData
+from sklearn.utils import check_random_state
+
 
 def generate_pseudobulk(
     adata: ad.AnnData,
@@ -55,7 +57,7 @@ def generate_pseudobulk(
 
 
     # validate cell type column presence in anndata
-    if celltype_col not in adata.obs.columns:
+    if cell_type_col not in adata.obs.columns:
         raise ValueError(f"Column '{col}' not found in adata.obs.")
     
     # Get unique cell types
