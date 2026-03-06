@@ -10,7 +10,7 @@ import scipy.sparse as sp
 import anndata
 from anndata import AnnData
 from sklearn.utils import check_random_state
-
+import warnings
 
 def generate_pseudobulk(
     adata: ad.AnnData,
@@ -52,7 +52,7 @@ def generate_pseudobulk(
         Cell type proportions (pseudobulk sample  × cell types)
     """
     
-    # Set random state for reproducibility
+    # Set random state for reproducibility (optional)
     rng = check_random_state(random_state)
 
 
