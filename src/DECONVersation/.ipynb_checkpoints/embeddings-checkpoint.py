@@ -19,15 +19,16 @@ import torch
 # ===============================
 # Geneformer
 # ===============================
-from geneformer import TranscriptomeTokenizer
-from geneformer import perturber_utils as pu
-from geneformer.emb_extractor import get_embs
+#from geneformer import TranscriptomeTokenizer
+#from geneformer import perturber_utils as pu
+#from geneformer.emb_extractor import get_embs
 
 # ===============================
 # Cell2Sentence
 # ===============================
-#import cell2sentence as cs
-#from cell2sentence.tasks import embed_cells
+import cell2sentence as cs
+from cell2sentence.tasks import embed_cells
+from typing import List, Optional
 
 
 # -----------------------------
@@ -54,9 +55,10 @@ def extract_embs(
             bulk_df = bulk_df,
             c2s_save_dir = temp_output_dir,
             c2s_save_name = "c2s_object",
-            model_path1 = model_path,
+            model_path = model_path,
             model_save_dir = temp_output_dir,
-            model_save_name = "c2s_model")
+            model_save_name = "c2s_model",
+            delete_temp_files = delete_temp_files)
 
     else:
         raise ValueError("mode must be either 'geneformer' or 'c2s' ")
@@ -224,13 +226,14 @@ def get_embedding_c2s(
     model_save_dir: str,
     model_save_name: str,
     transpose: bool = False,
-    gene_name_rm: str | None = r"\..+",
-    use_genes: list[str] | None = None,
-    gene_name: list[str] | None = None,
+    gene_name_rm: Optional[str] = r"\..+",
+    use_genes: Optional[List[str]] = None,
+    gene_name: Optional[List[str]] = None,
     reorder_obs_name: bool = False,
     n_genes: int = 200,
-    log: bool = True,
-    log_path: str | None = None,
+    log: bool = False,
+    log_path: Optional[str] = None,
+    delete_temp_files = False,
 ):
     """
     Generate Cell2Sentence (C2S) embeddings from bulk or pseudobulk expression data.
@@ -306,7 +309,7 @@ def get_embedding_c2s(
         bulk_df = bulk_df.T
 
     if gene_name_rm is not None:
-        bulk_df.columns = data.columns.str.replace(gene_name_rm, "", regex=True)
+        bulk_df.columns = bulk_df.columns.str.replace(gene_name_rm, "", regex=True)
 
     if use_genes is not None:
         missing = set(use_genes) - set(data.columns)
@@ -396,5 +399,17 @@ def get_embedding_c2s(
             )
 
         logger.info("Pipeline complete")
+
+    # -----------------------------
+    # Delete temp files
+    # -----------------------------
+    if delete_temp_files:
+        for filename in os.listdir(c2s_save_dir):
+            file_path = os.path.join(c2s_save_dir, filename)
+            
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.remove(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
 
     return embeddings_df

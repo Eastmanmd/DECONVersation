@@ -238,7 +238,7 @@ def plot_rmse_vs_corr_by_celltype(
     method: str = "pearson",
     dot_size: int = 40,
     annotate: bool = True,
-    save_path: str | None = None,
+    save_path: str = None,
 ):
     """
     Compute RMSE and correlation per cell type (class),
