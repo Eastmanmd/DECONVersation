@@ -52,7 +52,7 @@ def generate_pseudobulk(
         Cell type proportions (pseudobulk sample  × cell types)
     """
     
-    # Set random state for reproducibility
+    # Set random state for reproducibility (optional)
     rng = check_random_state(random_state)
 
 

@@ -27,7 +27,7 @@ from geneformer.emb_extractor import get_embs
 # Cell2Sentence
 # ===============================
 #import cell2sentence as cs
-#from cell2sentence.inference import embed_cells
+#from cell2sentence.tasks import embed_cells
 
 
 # -----------------------------
