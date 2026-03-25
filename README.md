@@ -22,7 +22,7 @@ This project provides:
 
 ## DECONVersation Features
 
-- Functions to extract geneformer and cell2sentence embeddings from a given bulk/pseudobulk dataset
+- Functions to extract Geneformer and Cell2Sentence embeddings from a given bulk/pseudobulk dataset
 - Functions to create a signature matrix and extract embeddings given a single cell reference data (.h5ad)
 - Functions to estimate cell types using NNLS from the bulk and signature matrix embeddings 
 - Evaluation of predicted cell type proportions against ground truth
