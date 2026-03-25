@@ -19,16 +19,26 @@ import torch
 # ===============================
 # Geneformer
 # ===============================
-#from geneformer import TranscriptomeTokenizer
-#from geneformer import perturber_utils as pu
-#from geneformer.emb_extractor import get_embs
+try:
+    from geneformer import TranscriptomeTokenizer
+    from geneformer import perturber_utils as pu
+    from geneformer.emb_extractor import get_embs
+    print("geneformer successfully imported.")
+    
+except ImportError:
+    print("geneformer is not installed. Skipping related functions.")
 
 # ===============================
 # Cell2Sentence
 # ===============================
-import cell2sentence as cs
-from cell2sentence.tasks import embed_cells
-from typing import List, Optional
+try:
+    import cell2sentence as cs
+    from cell2sentence.tasks import embed_cells
+    from typing import List, Optional
+    print("cell2sentence successfully imported.")
+    
+except ImportError:
+    print("cell2sentence is not installed. Skipping related functions.")
 
 
 # -----------------------------
@@ -41,25 +51,27 @@ def extract_embs(
     model_path,
     delete_temp_files = False
 ):
+    # Create a dedicated temp subfolder to avoid touching any existing user files
+    safe_temp_dir = os.path.join(temp_output_dir, "temp")
+    os.makedirs(safe_temp_dir, exist_ok=True)
+
     if mode == "geneformer":
         emb = extract_geneformer_embs(
             bulk_df = bulk_df,
-            token_output_dir = temp_output_dir,
+            token_output_dir = safe_temp_dir,
             token_output_name = "gf_tokens",
             geneformer_model_path = model_path,
             delete_temp_files = delete_temp_files
         )
-
     elif mode == "c2s":
         emb = get_embedding_c2s(
             bulk_df = bulk_df,
-            c2s_save_dir = temp_output_dir,
+            c2s_save_dir = safe_temp_dir,
             c2s_save_name = "c2s_object",
             model_path = model_path,
-            model_save_dir = temp_output_dir,
+            model_save_dir = safe_temp_dir,
             model_save_name = "c2s_model",
             delete_temp_files = delete_temp_files)
-
     else:
         raise ValueError("mode must be either 'geneformer' or 'c2s' ")
         
@@ -200,6 +212,9 @@ def extract_geneformer_embs(
     embeddings_df = pd.DataFrame(state_embs_dict.cpu().numpy())
     embeddings_df.index = bulk_df.index
 
+    # Add "GF" to the embedding names (column names)
+    embeddings_df.columns = "GF_" + embeddings_df.columns.astype(str)
+
     # -----------------------------
     # Delete temp files
     # -----------------------------
@@ -212,6 +227,9 @@ def extract_geneformer_embs(
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
 
+        # Remove temp folder itself
+        shutil.rmtree(token_output_dir, ignore_errors=True)
+
     return embeddings_df
 
 
@@ -219,20 +237,20 @@ def extract_geneformer_embs(
 # Extract cell2sentence embeddings 
 # --------------------------------
 def get_embedding_c2s(
-    bulk_df: str,
-    c2s_save_dir: str,
-    c2s_save_name: str,
-    model_path: str,
-    model_save_dir: str,
-    model_save_name: str,
-    transpose: bool = False,
-    gene_name_rm: Optional[str] = r"\..+",
-    use_genes: Optional[List[str]] = None,
-    gene_name: Optional[List[str]] = None,
-    reorder_obs_name: bool = False,
-    n_genes: int = 200,
-    log: bool = False,
-    log_path: Optional[str] = None,
+    bulk_df,
+    c2s_save_dir,
+    c2s_save_name,
+    model_path,
+    model_save_dir,
+    model_save_name,
+    transpose = False,
+    gene_name_rm = r"\..+",
+    use_genes = None,
+    gene_name = None,
+    reorder_obs_name = False,
+    n_genes = 200,
+    log = False,
+    log_path = None,
     delete_temp_files = False,
 ):
     """
@@ -387,6 +405,8 @@ def get_embedding_c2s(
 
     embeddings_df = embeddings_df.set_index("name")
 
+    embeddings_df.columns = "C2S_" + embeddings_df.columns.astype(str)
+
     if log:
         logger.info("Generating embedding complete")
         snapshot = tracemalloc.take_snapshot()
@@ -411,5 +431,17 @@ def get_embedding_c2s(
                 os.remove(file_path)
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
+                
+        shutil.rmtree(c2s_save_dir, ignore_errors=True)
+
+    # For saved model directory 
+    # if delete_temp_files:
+    #     for filename in os.listdir(model_save_dir):
+    #         file_path = os.path.join(model_save_dir, filename)
+            
+    #         if os.path.isfile(file_path) or os.path.islink(file_path):
+    #             os.remove(file_path)
+    #         elif os.path.isdir(file_path):
+    #             shutil.rmtree(file_path)
 
     return embeddings_df
