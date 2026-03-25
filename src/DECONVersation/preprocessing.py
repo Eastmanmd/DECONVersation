@@ -138,10 +138,10 @@ def gene_id_name_map(
     gene_ids = pd.read_csv("/gpfs/commons/groups/compbio/projects/CZI_endom/RNA_temp/gene_names_gene_ids_czi_endo.csv", index_col=False)
 
     if mode == "to_ensembl":
-        gene_list_mapped = ensembl_to_symbol(gene_ids, gene_list)
+        gene_list_mapped = symbol_to_ensembl(gene_ids, gene_list)
 
     elif mode == "to_symbol":
-        gene_list_mapped = symbol_to_ensembl(gene_ids, gene_list)
+        gene_list_mapped = ensembl_to_symbol(gene_ids, gene_list)
 
     else:
         raise ValueError(
@@ -153,15 +153,15 @@ def gene_id_name_map(
 
 
 # --------------------------------
-# Convert symbol to ensembl
+# Create signature matrix 
 # --------------------------------
 def create_signature_matrix(
     adata,
     sample_col,
-    sample_ids,
     celltype_col,
-    celltypes,
     groupby,
+    sample_ids = None,
+    celltypes = None,
     output_path=None,
 ):
     """
@@ -209,14 +209,16 @@ def create_signature_matrix(
 
     
     # Subset by  select samples
-    adata = adata[adata.obs[sample_col].isin(sample_ids)].copy()
-    if adata.n_obs == 0:
-        raise ValueError("No cells remain after subsetting by sample_ids.")
+    if sample_ids is not None:
+        adata = adata[adata.obs[sample_col].isin(sample_ids)].copy()
+        if adata.n_obs == 0:
+            raise ValueError("No cells remain after subsetting by sample_ids.")
 
     # Subset by select cell types
-    adata = adata[adata.obs[celltype_col].isin(celltypes)].copy()
-    if adata.n_obs == 0:
-        raise ValueError("No cells remain after subsetting by celltypes.")
+    if celltypes is not None:
+        adata = adata[adata.obs[celltype_col].isin(celltypes)].copy()
+        if adata.n_obs == 0:
+            raise ValueError("No cells remain after subsetting by celltypes.")
 
     # Convert expression matrix
     if hasattr(adata.X, "toarray"):
