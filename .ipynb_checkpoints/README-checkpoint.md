@@ -1,5 +1,4 @@
 <h1 align="left">
-  <br>
   <img src="images/deconversation.png" width="300">
 </h1>
 
