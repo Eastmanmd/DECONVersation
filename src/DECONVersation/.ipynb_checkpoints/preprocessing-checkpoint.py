@@ -6,6 +6,7 @@ import scanpy as sc
 import scipy.sparse as sp 
 import matplotlib.pyplot as plt
 import anndata
+import warnings
 
 def load_and_prep_data(
     adata: ad.AnnData,
@@ -153,7 +154,7 @@ def gene_id_name_map(
 
 
 # --------------------------------
-# Convert symbol to ensembl
+# Create signature matrix 
 # --------------------------------
 def create_signature_matrix(
     adata,
@@ -233,6 +234,13 @@ def create_signature_matrix(
             index=adata.obs_names,
             columns=adata.var_names,
         )
+
+    # Throw warning if not raw counts 
+    warnings.warn(
+        "Expression matrix contains non-integer values. "
+        "Raw counts are expected. ",
+        UserWarning
+    )
 
     # Add grouping variable
     expr[groupby] = adata.obs[groupby].values
