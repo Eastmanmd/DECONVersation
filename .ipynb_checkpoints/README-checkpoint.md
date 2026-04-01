@@ -1,7 +1,6 @@
 <h1 align="left">
-  DECONVersation
   <br>
-  <img src="images/deconversation.png" width="200">
+  <img src="images/deconversation.png" width="300">
 </h1>
 
 DECONVersation is a tool designed for the deconvolution of bulk RNA-seq data using embeddings derived from large-scale, LLM-based foundation models. DECONVersation produces robust  cell type proportions by leveraging these high-dimensional embeddings to mitigate batch effects typically present in single-cell reference signature matrices.
@@ -22,7 +21,7 @@ This project provides:
 
 ## DECONVersation Features
 
-- Functions to extract geneformer and cell2sentence embeddings from a given bulk/pseudobulk dataset
+- Functions to extract Geneformer and Cell2Sentence embeddings from a given bulk/pseudobulk dataset
 - Functions to create a signature matrix and extract embeddings given a single cell reference data (.h5ad)
 - Functions to estimate cell types using NNLS from the bulk and signature matrix embeddings 
 - Evaluation of predicted cell type proportions against ground truth
