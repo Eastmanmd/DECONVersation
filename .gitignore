@@ -19,6 +19,7 @@ rmd/
 scripts/
 tests/
 
+.ipynb_checkpoints/
 .ipynb_checkpoints/README-checkpoint.md
 
 
