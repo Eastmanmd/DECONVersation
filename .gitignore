@@ -8,5 +8,18 @@ data/*.csv
 # Ignore a folder and its contents
 logs/
 outputs/
+data/
+images/
+logs/
+notebooks/
+outputs/
+plots/
+results/
+rmd/
+scripts/
+tests/
+
+.ipynb_checkpoints/README-checkpoint.md
+
 
 
