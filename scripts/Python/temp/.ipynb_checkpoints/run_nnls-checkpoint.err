@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/notebooks/celltype/run_nnls.py", line 90, in <module>
-    main()
-  File "/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/notebooks/celltype/run_nnls.py", line 81, in main
-    nnls_props = estimate_proportions(bulk_df=pseudobulk_df, signature_matrix=signature_df)
-  File "/gpfs/commons/groups/compbio/projects/ao_projects/ml_deconv/notebooks/celltype/run_nnls.py", line 45, in estimate_proportions
-    raise ValueError("No common genes found between pseudobulk and signature matrix.")
-ValueError: No common genes found between pseudobulk and signature matrix.

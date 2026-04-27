@@ -1,5 +1,0 @@
-Loaded Training latent embeddings with shape: (4000, 100)
-Loaded Training cell-type proportions with shape: (4000, 4)
-
-Performing grid search for hyperparameter tuning...
-Fitting 3 folds for each of 216 candidates, totalling 648 fits

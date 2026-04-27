@@ -1,8 +1,0 @@
-2025-11-24 16:38:11,766 Load data
-2025-11-24 16:38:11,767 Memory used: 169.50390625 MB
-2025-11-24 16:38:12,731 Split data into train and val
-2025-11-24 16:38:12,732 Memory used: 245.7890625 MB
-2025-11-24 16:38:12,761 Initialize base model
-2025-11-24 16:38:12,761 Memory used: 281.19921875 MB
-2025-11-24 16:38:12,761 Performing grid search
-2025-11-24 16:38:12,761 Memory used: 281.19921875 MB
