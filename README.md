@@ -17,6 +17,47 @@ This project provides:
 - Guide to finetuning foundational models using DECONVersation (Geneformer and Cell2Sentence)
 
 ---
+config:
+  theme: 'neutral'
+---
+flowchart
+    subgraph ide1 [standard]
+    direction TB 
+    A[scRNA: cell x gene] --> B(full profile: type x gene)
+    A[scRNA: cell x gene] --> C(markers)
+    D[bulkRNA: sample x gene]
+    B --> F(signature: type x marker)
+    C --> F
+    F bb@==> E
+    D db@==> E{{deconv res:
+    sample x type%}}
+    end
+    subgraph ide2 [foundation model]
+    direction TB
+    A1[scRNA: cell x gene] --> B1(full profile: type x gene)
+    A1[scRNA: cell x gene] --> C1([fa:fa-robot finetuned model])
+    B1 --> F1(type x embeddings)
+    C1 --> F1
+    D1[bulkRNA: sample x gene] --> G1(sample x embeddings)
+    C1 --> G1
+    F1 f1b@==> E1{{deconv res:
+    sample x type%}}
+    G1 g1b@==> E1
+    end
+
+bb@{ curve: linear }
+db@{ curve: linear }
+f1b@{ curve: linear }
+g1b@{ curve: linear }
+style A fill:green,color:#fff
+style A1 fill:green,color:#fff
+style D fill:blue,color:#fff
+style D1 fill:blue,color:#fff
+style C1 fill:red,color:#fff
+style E stroke-width:4px
+style E1 stroke-width:4px
+
+---
 
 ## DECONVersation Features
 
