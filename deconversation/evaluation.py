@@ -266,10 +266,6 @@ def plot_rmse_vs_corr_by_celltype(
     save_path : str, optional
         If provided, saves figure to this path.
 
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame containing RMSE and correlation per class.
     """
 
     # Ensure corrected method is selected
