@@ -75,21 +75,39 @@ def plot_true_vs_predicted(
     # --------------------------------------------------
     if not stratify_by_celltype:
 
-        x = y_true_df.values.flatten()
-        y = y_pred_df.values.flatten()
+        # add cell type column    
+        df_true = y_true_df.reset_index().melt(id_vars=y_true_df.index.name or "index",
+                                               var_name="cell_type",
+                                               value_name="true")
+        
+        df_pred = y_pred_df.reset_index().melt(id_vars=y_pred_df.index.name or "index",
+                                               var_name="cell_type",
+                                               value_name="pred")
+        # Merge true + predicted
+        df_plot = df_true.merge(df_pred, on=[y_true_df.index.name or "index", "cell_type"])
+
+        #x = y_true_df.values.flatten()
+        #y = y_pred_df.values.flatten()
 
         plt.figure(figsize=(figsize_per_plot[0]*1.5,
                             figsize_per_plot[1]*1.5))
 
-        sns.scatterplot(x=x, y=y, alpha=0.7, s=dot_size)
+        sns.scatterplot(data=df_plot,
+                        x="true",
+                        y="pred",
+                        hue="cell_type",
+                        alpha=0.7,
+                        s=dot_size)
 
-        lo, hi = min(x.min(), y.min()), max(x.max(), y.max())
+        # Identity line
+        lo, hi = min(df_plot["true"].min(), df_plot["pred"].min()), max(df_plot["true"].max(), df_plot["pred"].max())        
         plt.plot([lo, hi], [lo, hi], "r--")
 
+        # Correlation
         if method == "pearson":
-            corr, _ = pearsonr(x, y)
+            corr, _ = pearsonr(df_plot["true"], df_plot["pred"])
         else:
-            corr, _ = spearmanr(x, y)
+            corr, _ = spearmanr(df_plot["true"], df_plot["pred"])
 
         plt.text(
             0.05, 0.95,
@@ -114,7 +132,7 @@ def plot_true_vs_predicted(
     # --------------------------------------------------
     # Stratified by cell type
     # --------------------------------------------------
-    cols = common_cols (# columns are cell types)
+    cols = common_cols #( columns are cell types)
     n_rows = int(np.ceil(len(cols) / n_cols))
 
     fig, axes = plt.subplots(
