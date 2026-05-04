@@ -69,6 +69,8 @@ DECONVersation supports end-to-end deconvolution through a set of easy-to-use fu
 
 ## Tutorials
 
+- [DECONVersation on bulk RNA-seq using Geneformer](tutorials/extracting_embeddings_from_bulk.ipynb): How to extract embeddings (geneformer)and run DECONVersation on bulk using a single cell reference.
+
 ---
 
 ## Installation
