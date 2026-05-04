@@ -20,13 +20,11 @@ This project provides:
 
 ## DECONVersation Features
 
-- Functions to extract Geneformer and Cell2Sentence embeddings from a given bulk/pseudobulk dataset
-- Functions to create a signature matrix and extract embeddings given a single cell reference data (.h5ad)
-- Functions to estimate cell types using NNLS from the bulk and signature matrix embeddings 
-- Evaluation of predicted cell type proportions against ground truth
-- Performance metrics (RMSE, Pearson correlation) 
-- Visualization of method performance (RMSE vs Correlation plots)
-- Functions to create pseudobulk data for deconvolution is testing. 
+DECONVersation supports end-to-end deconvolution through a set of easy-to-use functions. Geneformer and Cell2Sentence embeddings can be extracted from both bulk and single-cell datasets, with single-cell embeddings used to construct robust signature matrices from .h5ad references. Cell type proportions are then estimated via NNLS directly in embedding space. Built-in benchmarking tools evaluate predictions against ground truth using RMSE and Pearson correlation, complemented by visualization utilities for assessing method performance. DECONVersation also supports testing and validation with in-built pseudobulk functions. 
+
+---
+
+## Tutorials
 
 ---
 
