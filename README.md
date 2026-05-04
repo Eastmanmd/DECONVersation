@@ -17,6 +17,10 @@ This project provides:
 - Guide to finetuning foundational models using DECONVersation (Geneformer and Cell2Sentence)
 
 ```mermaid
+---
+config:
+  theme: 'neutral'
+---
 flowchart
     subgraph ide1 [standard]
     direction TB 
@@ -25,8 +29,8 @@ flowchart
     D[bulkRNA: sample x gene]
     B --> F(signature: type x marker)
     C --> F
-    F --> E
-    D --> E{{deconv res:
+    F bb@==> E
+    D db@==> E{{deconv res:
     sample x type%}}
     end
     subgraph ide2 [foundation model]
@@ -37,11 +41,15 @@ flowchart
     C1 --> F1
     D1[bulkRNA: sample x gene] --> G1(sample x embeddings)
     C1 --> G1
-    F1 --> E1{{deconv res:
+    F1 f1b@==> E1{{deconv res:
     sample x type%}}
-    G1 --> E1
+    G1 g1b@==> E1
     end
 
+bb@{ curve: linear }
+db@{ curve: linear }
+f1b@{ curve: linear }
+g1b@{ curve: linear }
 style A fill:green,color:#fff
 style A1 fill:green,color:#fff
 style D fill:blue,color:#fff
@@ -49,6 +57,7 @@ style D1 fill:blue,color:#fff
 style C1 fill:red,color:#fff
 style E stroke-width:4px
 style E1 stroke-width:4px
+```
 
 ---
 
