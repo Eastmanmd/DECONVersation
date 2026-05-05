@@ -2,18 +2,20 @@ import os
 import numpy as np
 import pandas as pd
 from scipy.optimize import nnls
-
+from sklearn.linear_model import Ridge, Lasso, ElasticNet
+from sklearn.svm import NuSVR
 
 # ============================================
 # Non-Negative Least Squares (NNLS)
 # ============================================
-def run_deconv_nnls(
+def run_deconv(
     bulk_df: pd.DataFrame,
     signature_df: pd.DataFrame,
+    solver: str = "nnls",
     normalize: bool = True,
 ) -> pd.DataFrame:
     """
-    Run NNLS-based deconvolution
+    Run NNLS-based and other methods for deconvolution
 
     Parameters
     ----------
@@ -22,6 +24,9 @@ def run_deconv_nnls(
         
     signature_df : pd.DataFrame
         Signature matrix (Rows:Genes, Columns:Cell types )
+    
+    solver : str
+        solvers currently supported: nnls, ridge, elasticnet, nusvr
 
     normalize : bool, default=True
         If True, normalize NNLS coefficients to sum to 1 per sample
@@ -64,7 +69,7 @@ def run_deconv_nnls(
     # --------------------------------------------------
     # Run NNLS 
     # --------------------------------------------------
-    print("Running NNLS deconvolution...")
+    print("Running deconvolution...")
 
     X = signature_df.values  
     celltypes = signature_df.columns
@@ -73,11 +78,23 @@ def run_deconv_nnls(
 
     for sample in bulk_df.columns:
         y = bulk_df[sample].values  
+        
+        if solver == "nnls":
+            coeffs, _ = nnls(X, y)
+            if normalize and coeffs.sum() > 0:
+                coeffs = coeffs / coeffs.sum()
 
-        coeffs, _ = nnls(X, y)
+        elif solver == "ridge":
+            model = Ridge(alpha=1.0, positive=True)
+            coeffs = model.fit(x, y).coef_
 
-        if normalize and coeffs.sum() > 0:
-            coeffs = coeffs / coeffs.sum()
+        elif solver == "elasticnet":)
+            model = ElasticNet(alpha=0.1, l1_ratio=0.5, positive=True)
+            coeffs = model.fit(x, y).coef_
+        
+        elif solver == "nusvr":
+            model = NuSVR(kernel='linear', nu=0.5, C=1.0)
+            coeffs = model.fit(x, y).coef_.ravel()
 
         proportions.append(coeffs)
 
