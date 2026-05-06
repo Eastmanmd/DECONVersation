@@ -88,7 +88,7 @@ def run_deconv(
             model = Ridge(alpha=1.0, positive=True)
             coeffs = model.fit(x, y).coef_
 
-        elif solver == "elasticnet":)
+        elif solver == "elasticnet":
             model = ElasticNet(alpha=0.1, l1_ratio=0.5, positive=True)
             coeffs = model.fit(x, y).coef_
         
