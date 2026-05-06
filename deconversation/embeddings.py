@@ -471,8 +471,8 @@ def get_embedding_c2s(
 # Extract cellhermes embeddings
 # --------------------------------
 def get_embedding_ch(
-    bulk_df = bulk_df,
-    model_path = model_path
+    bulk_df,
+    model_path
 ):
     # load model
     args = {
