@@ -2,8 +2,8 @@
 name = "DECONVersation"
 version = "0.0.1"
 authors = [
-  { name="Ali Oku", email="aoku@nygenome" },
-  { name="Rui Fu", email="rfu@nygenome" }
+  { name="Ali Oku", email="aoku@nygenome.org" },
+  { name="Rui Fu", email="rfu@nygenome.org" }
 ]
 description = "DECONVersation is a tool designed for the deconvolution of bulk RNA-seq data using embeddings derived from large-scale, LLM-based foundation models. DECONVersation produces robust  cell type proportions by leveraging these high-dimensional embeddings to mitigate batch effects typically present in single-cell reference signature matrices."
 readme = "README.md"
@@ -14,7 +14,9 @@ classifiers = [
 ]
 license = "MIT"
 license-files = ["LICEN[CS]E*"]
-
+[tool.setuptools.packages.find]
+include = ["deconversation"]
+namespaces = false
 [project.urls]
 Homepage = "https://github.com/Eastmanmd/DECONVersation"
 Issues = "https://github.com/Eastmanmd/DECONVersation/issues"
