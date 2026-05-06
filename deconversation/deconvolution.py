@@ -86,15 +86,15 @@ def run_deconv(
 
         elif solver == "ridge":
             model = Ridge(alpha=1.0, positive=True)
-            coeffs = model.fit(x, y).coef_
+            coeffs = model.fit(X, y).coef_
 
         elif solver == "elasticnet":
             model = ElasticNet(alpha=0.1, l1_ratio=0.5, positive=True)
-            coeffs = model.fit(x, y).coef_
+            coeffs = model.fit(X, y).coef_
         
         elif solver == "nusvr":
             model = NuSVR(kernel='linear', nu=0.5, C=1.0)
-            coeffs = model.fit(x, y).coef_.ravel()
+            coeffs = model.fit(X, y).coef_.ravel()
 
         proportions.append(coeffs)
 
