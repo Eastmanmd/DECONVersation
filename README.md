@@ -1,5 +1,5 @@
 <h1 align="left">
-  <img src="docs/deconversation.png" width="800">
+  <img src="docs/deconversation.png" width="300">
 </h1>
 
 DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. Currently, embeddings from Geneformer, Cell2Sentence and CellHermes are supported.
