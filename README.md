@@ -73,7 +73,7 @@ DECONVersation supports end-to-end deconvolution through a set of easy-to-use fu
 
 ---
 
-## Suggeted Reading
+## Suggested Reading
 - [Geneformer](https://www.nature.com/articles/s41586-023-06139-9) Transfer learning enables predictions in network biology
 - [Cell2Sentence](https://pmc.ncbi.nlm.nih.gov/articles/PMC11565894/) Cell2Sentence: Teaching Large Language Models the Language of Biology
 - [CellHermes](https://www.biorxiv.org/content/10.1101/2025.11.07.687322v1) Language may be all omics needs: Harmonizing multimodal data for omics understanding with CellHermes
