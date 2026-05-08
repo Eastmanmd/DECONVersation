@@ -87,8 +87,9 @@ DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground t
   <img src="docs/full_bench_more_all_6.png" width="800">
 </h1>
 
-<b> Summary </b>
-Across 6 benchmarked datasets, we report overall RMSE and correlation coefficient alongside mean RMSE and correlation averaged across cell types. Finetuned Cell2Sentence and Geneformer-based embeddings both demonstrate consistent deconvolution performance across all 6 datasets, with finetuned models outperforming their zero-shot counterparts in each case. This highlights the importance of finetuning. Finetuning was achieved by training models to predict cell type annotations from a single-cell reference. Among the compared methods, only DWLS achieves comparable performance to the finetuned embedding-based approaches available on DECONVersation.
+<b> Summary </b> <br>
+
+Across 6 benchmarked datasets, we show overall RMSE and correlation coefficient alongside mean RMSE and correlation averaged across cell types. Finetuned Cell2Sentence and Geneformer-based embeddings both demonstrate consistent deconvolution performance across all 6 datasets, with finetuned models outperforming their zero-shot counterparts in each case. This highlights the importance of finetuning. Finetuning was achieved by training models to predict cell type annotations from a single-cell reference. Among the compared methods, only DWLS achieves comparable performance to the finetuned embedding-based approaches available on DECONVersation.
 
 ## Tutorials
 
