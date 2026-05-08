@@ -1,5 +1,5 @@
 <h1 align="left">
-  <img src="docs/deconversation.png" width="500">
+  <img src="docs/deconversation.png" width="800">
 </h1>
 
 DECONVersation is a tool designed for the deconvolution of bulk RNA-seq data using embeddings derived from large-scale, LLM-based foundation models.
@@ -69,7 +69,7 @@ DECONVersation supports end-to-end deconvolution through a set of easy-to-use fu
 ## Tutorials
 
 - [DECONVersation on bulk RNA-seq using Geneformer](tutorials/extracting_embeddings_from_bulk.ipynb): How to extract embeddings (using geneformer)and run DECONVersation on bulk using a single cell reference.
-- [DECONVersation of pseudobulk using Geneformer](tutorials/extracting_embeddings_from_pseudobulk.ipynb): Validate deconvolution using pseudobulk data 
+- [DECONVersation on pseudobulk using Geneformer](tutorials/extracting_embeddings_from_pseudobulk.ipynb): Validate deconvolution using pseudobulk data 
 
 
 ---
