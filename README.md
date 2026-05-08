@@ -82,7 +82,7 @@ DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground t
 
 
 <h1 align="center">
-  <img src="docs/full_bench_more_all_6.pdf" width="800">
+  <img src="docs/full_bench_more_all_6.png" width="800">
 </h1>
 
 
