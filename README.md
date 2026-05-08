@@ -2,7 +2,8 @@
   <img src="docs/deconversation.png" width="800">
 </h1>
 
-DECONVersation is a tool designed for the deconvolution of bulk RNA-seq data using embeddings derived from large-scale, LLM-based foundation models.
+DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. Currently, embeddings from Geneformer, Cell2Sentence and CellHermes are supported.
+
 ```mermaid
 ---
 config:
@@ -65,6 +66,21 @@ This project provides:
 DECONVersation supports end-to-end deconvolution through a set of easy-to-use functions. [Geneformer](https://huggingface.co/ctheodoris/Geneformer), [Cell2Sentence](https://github.com/vandijklab/cell2sentence), and [CellHermes](https://github.com/theislab/CellHermes) embeddings can be extracted from both bulk and single-cell datasets, with single-cell embeddings used to construct robust signature matrices from .h5ad references. Cell type proportions are then estimated via NNLS directly in embedding space. Built-in benchmarking tools evaluate predictions against ground truth using RMSE and Pearson correlation, complemented by visualization utilities for assessing method performance. DECONVersation also supports testing and validation with in-built pseudobulk functions. 
 
 ---
+
+## Benchmarking 
+
+DECONVersation was benchmarked across 6 bulk RNA-seq datasets spanning diverse tissue types and experimental conditions to evaluate deconvolution performance and generalizability.
+
+| # | Dataset | Source | Ground Truth | Cell Type # | 
+| -------- | -------- | --------  | --------  | --------  |
+| 1 | [PMBC (HOEK)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0118528)| PBMC | FACS | 5 |
+| 2 | [PMBC (Finotello)](https://pubmed.ncbi.nlm.nih.gov/31126321/)| PBMC | FACS | 5 |
+| 3 | [PMBC (Morandini)](https://pmc.ncbi.nlm.nih.gov/articles/PMC10828344/)| PBMC | FACS | 5 |
+| 4 | [Cell Line Mixture (Cobos)](https://europepmc.org/article/med/37528411)| Cell Line Mixture| Mixture Count | 6 |
+| 5 | [Pre-Frontal Cortex](https://pubmed.ncbi.nlm.nih.gov/38781370/)| DLPFC | RNAScope/IF | 6 |
+| 6 | [Retina](https://huggingface.co/ctheodoris/Geneformer)| Retina | snRNA | 6 |
+
+
 
 ## Tutorials
 
