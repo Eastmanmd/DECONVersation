@@ -69,7 +69,7 @@ DECONVersation supports end-to-end deconvolution through a set of easy-to-use fu
 
 ## Benchmarking 
 
-DECONVersation was benchmarked across 6 bulk RNA-seq datasets spanning diverse tissue types and experimental conditions to evaluate deconvolution performance and generalizability.
+DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground truths, spanning diverse tissue types and experimental conditions, to evaluate deconvolution performance and generalizability.
 
 | # | Dataset | Source | Ground Truth | Cell Type # | 
 | -------- | -------- | --------  | --------  | --------  |
