@@ -71,12 +71,11 @@ DECONVersation supports end-to-end deconvolution through a set of easy-to-use fu
 - [DECONVersation on bulk RNA-seq using Geneformer](tutorials/extracting_embeddings_from_bulk.ipynb): How to extract embeddings (using geneformer)and run DECONVersation on bulk using a single cell reference.
 - [DECONVersation on pseudobulk using Geneformer](tutorials/extracting_embeddings_from_pseudobulk.ipynb): Validate deconvolution using pseudobulk data 
 
-
 ---
 
-## Installation
-
-### 1. …
-
+## Suggeted Reading
+- [Geneformer](https://www.nature.com/articles/s41586-023-06139-9) Transfer learning enables predictions in network biology
+- [Cell2Sentence](https://pmc.ncbi.nlm.nih.gov/articles/PMC11565894/) Cell2Sentence: Teaching Large Language Models the Language of Biology
+- [CellHermes](https://www.biorxiv.org/content/10.1101/2025.11.07.687322v1) Language may be all omics needs: Harmonizing multimodal data for omics understanding with CellHermes
 
 ---
