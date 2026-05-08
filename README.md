@@ -1,5 +1,5 @@
 <h1 align="left">
-  <img src="docs/deconversation.png" width="300">
+  <img src="docs/deconversation.png" width="500">
 </h1>
 
 DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. Currently, embeddings from Geneformer, Cell2Sentence and CellHermes are supported.
@@ -67,9 +67,23 @@ DECONVersation supports end-to-end deconvolution through a set of easy-to-use fu
 
 ---
 
+## Tutorials
+
+- [DECONVersation on bulk RNA-seq using Geneformer](tutorials/extracting_embeddings_from_bulk.ipynb): How to extract embeddings (using geneformer)and run DECONVersation on bulk using a single cell reference.
+- [DECONVersation on pseudobulk using Geneformer](tutorials/extracting_embeddings_from_pseudobulk.ipynb): Validate deconvolution using pseudobulk data 
+
+---
+
 ## Benchmarking 
 
 DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground truths, spanning diverse tissue types and experimental conditions, to evaluate deconvolution performance and generalizability.
+
+<h1 align="left">
+  <img src="docs/full_bench_more_all_6.png" width="800">
+</h1>
+
+<b> Summary </b> <br>
+Across 6 benchmarked datasets, we show overall RMSE and correlation coefficient alongside mean RMSE and correlation averaged across cell types. Finetuned Cell2Sentence and Geneformer-based embeddings both demonstrate consistent deconvolution performance across all 6 datasets, with finetuned models outperforming their zero-shot counterparts in each case. This highlights the importance of finetuning. Finetuning was achieved by training models to predict cell type annotations from a single-cell reference. Among the compared methods, only DWLS achieves comparable performance to the finetuned embedding-based approaches available on DECONVersation.
 
 | # | Dataset | Source | Ground Truth | Cell Type # | 
 | -------- | -------- | --------  | --------  | --------  |
@@ -79,21 +93,6 @@ DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground t
 | 4 | [Cell Line Mixture (Cobos)](https://europepmc.org/article/med/37528411)| Cell Line Mixture| Mixture Count | 6 |
 | 5 | [Pre-Frontal Cortex](https://pubmed.ncbi.nlm.nih.gov/38781370/)| DLPFC | RNAScope/IF | 6 |
 | 6 | [Retina](https://pmc.ncbi.nlm.nih.gov/articles/PMC11789644/)| Retina | snRNA | 6 |
-
-<br> 
-
-
-<h1 align="left">
-  <img src="docs/full_bench_more_all_6.png" width="800">
-</h1>
-
-<b> Summary </b> <br>
-Across 6 benchmarked datasets, we show overall RMSE and correlation coefficient alongside mean RMSE and correlation averaged across cell types. Finetuned Cell2Sentence and Geneformer-based embeddings both demonstrate consistent deconvolution performance across all 6 datasets, with finetuned models outperforming their zero-shot counterparts in each case. This highlights the importance of finetuning. Finetuning was achieved by training models to predict cell type annotations from a single-cell reference. Among the compared methods, only DWLS achieves comparable performance to the finetuned embedding-based approaches available on DECONVersation.
-
-## Tutorials
-
-- [DECONVersation on bulk RNA-seq using Geneformer](tutorials/extracting_embeddings_from_bulk.ipynb): How to extract embeddings (using geneformer)and run DECONVersation on bulk using a single cell reference.
-- [DECONVersation on pseudobulk using Geneformer](tutorials/extracting_embeddings_from_pseudobulk.ipynb): Validate deconvolution using pseudobulk data 
 
 ---
 
