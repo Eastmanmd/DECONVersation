@@ -78,8 +78,12 @@ DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground t
 | 3 | [PMBC (Morandini)](https://pmc.ncbi.nlm.nih.gov/articles/PMC10828344/)| PBMC | FACS | 5 |
 | 4 | [Cell Line Mixture (Cobos)](https://europepmc.org/article/med/37528411)| Cell Line Mixture| Mixture Count | 6 |
 | 5 | [Pre-Frontal Cortex](https://pubmed.ncbi.nlm.nih.gov/38781370/)| DLPFC | RNAScope/IF | 6 |
-| 6 | [Retina](https://huggingface.co/ctheodoris/Geneformer)| Retina | snRNA | 6 |
+| 6 | [Retina](https://pmc.ncbi.nlm.nih.gov/articles/PMC11789644/)| Retina | snRNA | 6 |
 
+
+<h1 align="center">
+  <img src="docs/full_bench_more_all_6.pdf" width="800">
+</h1>
 
 
 ## Tutorials
