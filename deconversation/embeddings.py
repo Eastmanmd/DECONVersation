@@ -56,6 +56,7 @@ try:
     from llamafactory.chat.base_engine import Response
     import joblib
     import json
+    import re
     print("cellhermes successfully imported.")
 
 except ImportError:
