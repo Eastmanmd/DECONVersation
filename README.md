@@ -87,7 +87,7 @@ Across 6 benchmarked datasets, we show overall RMSE and correlation coefficient 
 
 | # | Dataset | Source | Ground Truth | Cell Type # | 
 | -------- | -------- | --------  | --------  | --------  |
-| 1 | [PMBC (HOEK)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0118528)| PBMC | FACS | 5 |
+| 1 | [PMBC (Hoek)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0118528)| PBMC | FACS | 5 |
 | 2 | [PMBC (Finotello)](https://pubmed.ncbi.nlm.nih.gov/31126321/)| PBMC | FACS | 5 |
 | 3 | [PMBC (Morandini)](https://pmc.ncbi.nlm.nih.gov/articles/PMC10828344/)| PBMC | FACS | 5 |
 | 4 | [Cell Line Mixture (Cobos)](https://europepmc.org/article/med/37528411)| Cell Line Mixture| Mixture Count | 6 |
