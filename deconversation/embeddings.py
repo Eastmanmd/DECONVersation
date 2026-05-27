@@ -62,6 +62,16 @@ try:
 except ImportError:
     print("cellhermes is not installed. Skipping related functions.")
 
+# ===============================
+# scGPT
+# ===============================
+try:
+    import scgpt as scg
+    print("scGPT successfully imported.")
+
+except ImportError:
+    print("scGPT is not installed. Skipping related functions.")
+
 # -----------------------------
 # Extract geneformer embeddings 
 # -----------------------------
@@ -97,8 +107,12 @@ def extract_embs(
         emb = get_embedding_ch(
             bulk_df = bulk_df,
             model_path = model_path)
+    elif mode == "scgpt":
+        emb = get_embedding_scgpt(
+            bulk_df = bulk_df,
+            model_path = model_path)
     else:
-        raise ValueError("mode must be 'geneformer', 'c2s', or 'cellhermes'")
+        raise ValueError("mode must be 'geneformer', 'c2s', 'cellhermes', or 'scgpt")
         
     return emb
 
@@ -614,3 +628,29 @@ def ch_process_args(
         gen_kwargs[key] = value.to(model.device)
 
     return gen_kwargs, prompt_length
+
+# --------------------------------
+# Extract scgpt embeddings
+# --------------------------------
+def get_embedding_scgpt(
+    bulk_df,
+    model_path
+):
+    data = pd.read_csv(bulk_df, header = 0, index_col= 0)
+    adata = sc.AnnData(data)
+    adata.var["gene_name"] = adata.var.index
+    adata.obs["sample"] = adata.obs.index
+    
+    embed_adata = scg.tasks.embed_data(
+        adata,
+        model_path,
+        gene_col="gene_name",
+        obs_to_save="sample"
+        batch_size=64,
+        return_new_adata=True,
+    )
+    embeddings_df = pd.DataFrame(embed_adata.X)
+    embeddings_df.columns = "scGPT_" + embeddings_df.columns.astype(str)
+    embeddings_df["name"] = adata.obs_names.to_list()
+    embeddings_df = embeddings_df.set_index("name")
+    return embeddings_df
