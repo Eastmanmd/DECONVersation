@@ -645,7 +645,7 @@ def get_embedding_scgpt(
         adata,
         model_path,
         gene_col="gene_name",
-        obs_to_save="sample"
+        obs_to_save="sample",
         batch_size=64,
         return_new_adata=True,
     )
