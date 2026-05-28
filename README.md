@@ -91,8 +91,8 @@ Across 6 benchmarked datasets, we show overall RMSE and correlation coefficient 
 | 2 | [PMBC (Finotello)](https://pubmed.ncbi.nlm.nih.gov/31126321/)| PBMC | FACS | 5 |
 | 3 | [PMBC (Morandini)](https://pmc.ncbi.nlm.nih.gov/articles/PMC10828344/)| PBMC | FACS | 5 |
 | 4 | [Cell Line Mixture (Cobos)](https://europepmc.org/article/med/37528411)| Cell Line Mixture| Mixture Count | 6 |
-| 5 | [Pre-Frontal Cortex](https://pubmed.ncbi.nlm.nih.gov/38781370/)| DLPFC | RNAScope/IF | 6 |
-| 6 | [Retina](https://pmc.ncbi.nlm.nih.gov/articles/PMC11789644/)| Retina | snRNA | 6 |
+| 5 | [Pre-Frontal Cortex (Huuki-Myers)](https://pubmed.ncbi.nlm.nih.gov/38781370/)| DLPFC | RNAScope/IF | 6 |
+| 6 | [Retina (Guo)](https://pmc.ncbi.nlm.nih.gov/articles/PMC11789644/)| Retina | snRNA | 6 |
 
 ---
 
