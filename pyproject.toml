@@ -20,3 +20,8 @@ namespaces = false
 [project.urls]
 Homepage = "https://github.com/Eastmanmd/DECONVersation"
 Issues = "https://github.com/Eastmanmd/DECONVersation/issues"
+[project.optional-dependencies]
+geneformer = ["geneformer"]
+cell2sentence = ["cell2sentence"]
+cellhermes = ["llamafactory"]
+scgpt = ["scgpt"]
