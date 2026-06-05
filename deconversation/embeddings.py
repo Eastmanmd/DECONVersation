@@ -636,8 +636,7 @@ def get_embedding_scgpt(
     bulk_df,
     model_path
 ):
-    data = pd.read_csv(bulk_df, header = 0, index_col= 0)
-    adata = sc.AnnData(data)
+    adata = sc.AnnData(bulk_df)
     adata.var["gene_name"] = adata.var.index
     adata.obs["sample"] = adata.obs.index
     
