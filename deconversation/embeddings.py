@@ -35,6 +35,7 @@ try:
     import cell2sentence as cs
     from cell2sentence.tasks import embed_cells
     from typing import List, Optional
+    import time
     print("cell2sentence successfully imported.")
     
 except ImportError:
@@ -407,7 +408,7 @@ def get_embedding_c2s(
         arrow_dataset=arrow_ds,
         vocabulary=vocabulary,
         save_dir=c2s_save_dir,
-        save_name=c2s_save_name,
+        save_name=c2s_save_name+str(int(time.time() * 1000)),
         dataset_backend="arrow",
     )
 
