@@ -19,7 +19,7 @@ def plot_true_vs_predicted(
     dot_size: int = 12,
     stratify_by_celltype: bool = True,
     method: str = "pearson",
-    save_path: str | None = None,
+    save_path = None,
 ):
     """
     Plot true vs predicted proportions.
