@@ -549,7 +549,7 @@ def get_embedding_ch(
 def ch_process_args(
     model,
     tokenizer,
-    processer,
+    processor,
     template,
     generating_args,
     messages,
