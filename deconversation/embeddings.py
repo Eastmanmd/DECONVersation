@@ -73,6 +73,18 @@ try:
 except ImportError:
     print("scGPT is not installed. Skipping related functions.")
 
+
+# ===============================
+# scVI
+# ===============================
+try:
+    import scvi
+    print("scVI successfully imported.")
+
+except ImportError:
+    print("scVI is not installed. Skipping related functions.")
+    
+
 # -----------------------------
 # Extract geneformer embeddings 
 # -----------------------------
@@ -112,8 +124,12 @@ def extract_embs(
         emb = get_embedding_scgpt(
             bulk_df = bulk_df,
             model_path = model_path)
+    elif mode == "scvi":
+        emb = get_embedding_scvi(
+            bulk_df = bulk_df,
+            model_path = model_path)
     else:
-        raise ValueError("mode must be 'geneformer', 'c2s', 'cellhermes', or 'scgpt")
+        raise ValueError("mode must be 'geneformer', 'c2s', 'cellhermes', 'scgpt' or 'scvi' ")
         
     return emb
 
@@ -653,4 +669,31 @@ def get_embedding_scgpt(
     embeddings_df.columns = "scGPT_" + embeddings_df.columns.astype(str)
     embeddings_df["name"] = adata.obs_names.to_list()
     embeddings_df = embeddings_df.set_index("name")
+    return embeddings_df
+
+
+
+# --------------------------------
+# Extract scVI embeddings
+# --------------------------------
+def get_embedding_scvi(
+    bulk_df, 
+    model_path):
+    
+    # Convert to AnnData
+    adata = anndata.AnnData(bulk_df)
+    adata.obs_names = bulk_df.index
+    adata.var_names = bulk_df.columns
+    adata.obs["batch"] = "bulk"
+    adata.obs["id"] = bulk_df.index
+
+    # Prepare and load scVI model
+    scvi.model.SCVI.prepare_query_anndata(adata_bulk, scvi_model_path)
+    vae_q = scvi.model.SCVI.load_query_data(adata, scvi_model_path)
+    vae_q.is_trained = True
+
+    # Get latent representations
+    embeddings = vae_q.get_latent_representation()
+    embeddings_df = pd.DataFrame(embeddings, index=adata.obs_names)
+
     return embeddings_df
