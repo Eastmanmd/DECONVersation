@@ -681,19 +681,20 @@ def get_embedding_scvi(
     model_path):
     
     # Convert to AnnData
-    adata = anndata.AnnData(bulk_df)
+    adata = sc.AnnData(bulk_df)
     adata.obs_names = bulk_df.index
     adata.var_names = bulk_df.columns
     adata.obs["batch"] = "bulk"
     adata.obs["id"] = bulk_df.index
 
     # Prepare and load scVI model
-    scvi.model.SCVI.prepare_query_anndata(adata_bulk, scvi_model_path)
-    vae_q = scvi.model.SCVI.load_query_data(adata, scvi_model_path)
+    scvi.model.SCVI.prepare_query_anndata(adata, model_path)
+    vae_q = scvi.model.SCVI.load_query_data(adata, model_path)
     vae_q.is_trained = True
 
     # Get latent representations
     embeddings = vae_q.get_latent_representation()
     embeddings_df = pd.DataFrame(embeddings, index=adata.obs_names)
+    embeddings_df.columns = "scVI_" + embeddings_df.columns.astype(str)
 
     return embeddings_df
