@@ -83,10 +83,15 @@ try:
 
 except ImportError:
     print("scVI is not installed. Skipping related functions.")
-    
+
+# ===============================
+# PCA
+# ===============================
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 
 # -----------------------------
-# Extract geneformer embeddings 
+# Extract  embeddings 
 # -----------------------------
 def extract_embs(
     bulk_df,
@@ -100,7 +105,7 @@ def extract_embs(
     os.makedirs(safe_temp_dir, exist_ok=True)
 
     if mode == "geneformer":
-        emb = extract_geneformer_embs(
+        emb = get_embedding_gf(
             bulk_df = bulk_df,
             token_output_dir = safe_temp_dir,
             token_output_name = "gf_tokens",
@@ -133,10 +138,32 @@ def extract_embs(
         
     return emb
 
+
+# ----------------------
+# Extract Components 
+# ----------------------
+def extract_components(
+    bulk_df,
+    sig_mat,
+    mode,
+    transform = True, 
+    n_components = 50
+):
+
+    # Extract PCA dimensions
+    if mode == "pca":
+        dims = get_embedding_pca(bulk_df, 
+                      sig_mat, 
+                      transform=True, 
+                      n_components=50)
+
+    return dims
+        
+
 # -----------------------------
 # Extract geneformer embeddings 
 # -----------------------------
-def extract_geneformer_embs(
+def get_embedding_gf(
     bulk_df,
     token_output_dir,
     token_output_name,
@@ -698,3 +725,47 @@ def get_embedding_scvi(
     embeddings_df.columns = "scVI_" + embeddings_df.columns.astype(str)
 
     return embeddings_df
+
+# --------------------------------
+# Extract scVI embeddings
+# --------------------------------
+def get_embedding_pca(bulk_df, 
+                      sig_mat, 
+                      transform=True, 
+                      n_components=50):
+
+    # align genes between bulk and signature matrix
+    shared_genes = bulk_df.columns.intersection(sig_mat.columns)
+    bulk = bulk_df[shared_genes].copy()
+    sig  = sig_mat[shared_genes].copy()
+
+    # transform data
+    if transform:
+        bulk = np.log1p(bulk)
+        sig  = np.log1p(sig)
+
+    # fit scaler + PCA on sig_mat only
+    scaler = StandardScaler()
+    sig_scaled = scaler.fit_transform(sig)
+
+    # Number of PCs can't be less than min # cell types in signature matrix 
+    n_components = min(n_components, *sig_scaled.shape)
+    pca = PCA(n_components=n_components)
+    pca.fit(sig_scaled)
+
+    # transform both using the same scaler + PCA
+    pc_cols  = [f"PC_{i+1}" for i in range(n_components)]
+    sig_pca  = pd.DataFrame(pca.transform(sig_scaled),
+                            index=sig.index,
+                            columns=pc_cols)
+    
+    bulk_pca = pd.DataFrame(pca.transform(scaler.transform(bulk)), 
+                            index=bulk.index, 
+                            columns=pc_cols)
+
+    print(f"Variance explained by {n_components} PCs: {pca.explained_variance_ratio_.sum():.2%}")
+
+    return {
+        "pca_bulk": bulk_pca,
+        "sig_pca": sig_pca
+    }
