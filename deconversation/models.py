@@ -51,7 +51,7 @@ def train_geneformer_cell_classifier(
     tokenized_data_dir = None, # path to store tokenized data
     token_output_prefix = "tokenized", #  prefix for tokenized data
     undersample = True, # Should data be undersampled
-    n_per_class: = 50, #if undersampling, max # cell per cell type
+    n_per_class = 50, #if undersampling, max # cell per cell type
     n_test_per_class = 25, # max number of  cells per cell type in test dataset (holdout dataset)
     eval_fraction = 0.2, # Fraction of test data (hold out dataset)
     model_directory = "ctheodoris/Geneformer", # Model directory
