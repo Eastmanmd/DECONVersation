@@ -12,9 +12,18 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, f1_score
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
+
+# ===============================
+# For LoRA fine-tuning 
+# ===============================
+import torch
+from datasets import load_from_disk
+from transformers import BertForSequenceClassification, TrainingArguments, Trainer
+from peft import LoraConfig, get_peft_model, TaskType
 
 
 # ===============================
@@ -22,6 +31,7 @@ logger = logging.getLogger(__name__)
 # ===============================
 try:
     from geneformer import Classifier, TranscriptomeTokenizer
+    from geneformer import DataCollatorForCellClassification
     print("geneformer successfully imported.")
     
 except ImportError:
@@ -42,6 +52,9 @@ DEFAULT_TRAINING_ARGS = {
     "fp16": True,
 }
 
+# =====================================
+#    Full Geneformer Finetuning
+# =====================================
 def train_geneformer_cell_classifier(
     adata,
     output_dir,
@@ -279,3 +292,102 @@ def train_geneformer_cell_classifier(
 
     logger.info("Done.")
     return {"train_metrics": all_metrics, "test_metrics": all_metrics_test}
+
+
+# =====================================
+#    LoRA Geneformer Finetuning
+# =====================================
+def train_geneformer_cell_classifier_LoRA(
+    train_dataset, #tokenized training data 
+    test_dataset, #tokenized test data 
+    class_id_pkl, # .pkl file post tokenization containing ids and labels (path)
+    output_dir,
+    gene_token_dict_pkl,
+    model_save_dir,
+    model_name = "ctheodoris/Geneformer",
+    training_args = None,
+    ):
+
+    # ──────────────── Load tokenized data ────────────────────  
+    train_dataset = load_from_disk(train_dataset)
+    val_dataset   = load_from_disk(test_dataset)
+
+    # ───────────────Get class ID maps ─────────────────────────
+    with open(class_id_pkl, "rb") as f:
+        id2label = pickle.load(f) # ID to label
+    label2id = {v: k for k, v in id2label.items()} # Label to ID
+
+    # ────────── Load base model with classification head ─────
+    model = BertForSequenceClassification.from_pretrained(
+        model_name,
+        num_labels=len(id2label),
+        label2id=label2id,
+        id2label=id2label,
+        ignore_mismatched_sizes=True)
+
+    # ─────────────── Wrap with LoRA ─────────────────
+    lora_config = LoraConfig(
+        task_type=TaskType.SEQ_CLS,        # sequence classification
+        r=8,                               # rank 
+        lora_alpha=16,                     # scaling factor (usually 2x r)
+        lora_dropout=0.1,
+        target_modules=["query", "value"], # inject into Q and V projections
+        bias="none",                       # don't train biases
+        modules_to_save=["classifier"],    # always train the classification head
+    )
+
+    model = get_peft_model(model, lora_config)
+    model.print_trainable_parameters()
+
+    # ──────────────── Compute Metrics ─────────────────
+    def compute_metrics(eval_pred):
+        logits, labels = eval_pred
+        preds = np.argmax(logits, axis=-1)
+        return {
+            "accuracy": accuracy_score(labels, preds),
+            "macro_f1": f1_score(labels, preds, average="macro"),
+        }
+
+    # ────────────────── Training arguments ────────────────────
+    training_args = TrainingArguments(
+        output_dir= output_dir,
+        num_train_epochs=5,
+        per_device_train_batch_size=12,
+        per_device_eval_batch_size=12,
+        learning_rate=5e-4,         
+        weight_decay=0.01,
+        warmup_ratio=0.1,
+        lr_scheduler_type="cosine",
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        load_best_model_at_end=True,
+        metric_for_best_model="macro_f1",
+        fp16=torch.cuda.is_available(),
+        logging_steps=50,
+        report_to="none")
+
+    # ────────────────── Handle padding ──────────────────
+    # Load the gene token dictionary file
+    with open(gene_token_dict_pkl, "rb") as f:
+        gene_token_dict = pickle.load(f)
+    
+    # Dynamically pad the gene sequences in each batch
+    data_collator = DataCollatorForCellClassification(token_dictionary=gene_token_dict)
+
+    # ────────────────── Trainer ───────────────────────────
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=val_dataset,
+        data_collator=data_collator,
+        compute_metrics=compute_metrics,
+    )
+
+    # Train model
+    trainer.train()
+
+    # ────────────────── Save Model ─────────────────────────
+    model.save_pretrained(model_save_dir)
+
+    
