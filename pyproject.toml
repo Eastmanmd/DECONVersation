@@ -42,7 +42,7 @@ Homepage = "https://github.com/Eastmanmd/DECONVersation"
 Issues = "https://github.com/Eastmanmd/DECONVersation/issues"
 [project.optional-dependencies]
 geneformer = ["geneformer"]
-cell2sentence = ["cell2sentence"]
+cell2sentence = ["cell2sentence @ git+https://github.com/vandijklab/cell2sentence.git"]
 cellhermes = ["llamafactory"]
-scgpt = ["scgpt"]
+scgpt = ["scgpt @ git+https://github.com/bowang-lab/scGPT.git"]
 scvi = ["scvi-tools"]
