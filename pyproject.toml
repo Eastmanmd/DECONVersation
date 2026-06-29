@@ -11,17 +11,38 @@ requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Development Status :: 3 - Alpha",
 ]
 license = "MIT"
 license-files = ["LICEN[CS]E*"]
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "anndata",
+    "scanpy",
+    "scikit-learn",
+    "matplotlib",
+    "seaborn",
+    "torch",
+    "datasets",
+    "transformers",
+    "peft",
+]
 [tool.setuptools.packages.find]
 include = ["deconversation"]
 namespaces = false
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
 [project.urls]
 Homepage = "https://github.com/Eastmanmd/DECONVersation"
 Issues = "https://github.com/Eastmanmd/DECONVersation/issues"
 [project.optional-dependencies]
 geneformer = ["geneformer"]
-cell2sentence = ["cell2sentence"]
+cell2sentence = ["cell2sentence @ git+https://github.com/vandijklab/cell2sentence.git"]
 cellhermes = ["llamafactory"]
-scgpt = ["scgpt"]
+scgpt = ["scgpt @ git+https://github.com/bowang-lab/scGPT.git"]
+scvi = ["scvi-tools"]

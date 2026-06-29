@@ -6,7 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import pearsonr, spearmanr
-
+import os
+from sklearn.metrics import mean_squared_error
 
 # ============================================
 # Plot True vs Predicted
@@ -178,5 +179,137 @@ def plot_true_vs_predicted(
     if save_path:
         plt.savefig(save_path, dpi=600, bbox_inches="tight")
 
+    plt.show()
+
+# ============================================
+# Load all deconvolution results to compare 
+# ============================================
+def load_results(folder_path, ground_truth_file):
+    gt_df = pd.read_csv(ground_truth_file, index_col=0)
+    results = []
+    for file in os.listdir(folder_path):
+        if not file.endswith('.csv'):
+            continue
+        model_name = file.split('_')[0]
+        df = pd.read_csv(os.path.join(folder_path, file), index_col=0)
+        df = df.loc[gt_df.index, gt_df.columns]
+        for ct in gt_df.columns:
+            results.append({
+                'Model': model_name, 'CellType': ct,
+                'Correlation': df[ct].corr(gt_df[ct]),
+                'RMSE': np.sqrt(mean_squared_error(gt_df[ct], df[ct])),
+            })
+        results.append({
+            'Model': model_name, 'CellType': 'Global',
+            'Correlation': df.corrwith(gt_df, axis=0).mean(),
+            'RMSE': np.sqrt(mean_squared_error(gt_df, df)),
+        })
+    return pd.DataFrame(results)
+
+
+# ============================================
+# Heatmaps - beanchmark multiple results 
+# ============================================
+def plot_cell_type_heatmaps(data, 
+                            save_path = None):
+    
+    # Prep data
+    data_sorted = data.sort_values(by=['CellType', 'Correlation'], ascending=[True, False])
+    model_order = data_sorted['Model'].tolist()
+    model_order = list(dict.fromkeys(model_order))
+
+    sorted_cell_types = data.groupby('CellType')['Correlation'].mean().sort_values(ascending=False).index
+    pivot_corr = data.pivot(index='Model', columns='CellType', values='Correlation').reindex(model_order)[sorted_cell_types]
+    pivot_rmse = data.pivot(index='Model', columns='CellType', values='RMSE').reindex(model_order)[sorted_cell_types]
+    
+    # Set up styling
+    sns.set_theme(style="white")
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    
+    # Correlation Heatmap
+    sns.heatmap(
+        pivot_corr,
+        annot=True,
+        cmap='viridis',
+        fmt='.2f',
+        linewidths=.5,
+        cbar_kws={'label': 'Correlation (Higher is Better)'},
+        ax=axes[0]
+    )
+    axes[0].set_title('Correlation', pad=12, weight='bold', fontsize=13)
+    axes[0].set_xlabel('Cell Type', labelpad=10)
+    axes[0].set_ylabel('Model', labelpad=10)
+    
+    # RMSE Heatmap
+    sns.heatmap(
+        pivot_rmse,
+        annot=True,
+        cmap='plasma',
+        fmt='.3f',
+        linewidths=.5,
+        cbar_kws={'label': 'RMSE (Lower is Better)'},
+        ax=axes[1]
+    )
+    axes[1].set_title('RMSE', pad=12, weight='bold', fontsize=13)
+    axes[1].set_xlabel('Cell Type', labelpad=10)
+    axes[1].set_ylabel('') 
+    
+    plt.suptitle('Model Comparison Across Specific Cell Types', fontsize=16, weight='bold', y=1.02)
+    plt.tight_layout()
+
+    if save_path: 
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        
+    plt.show()
+
+
+# ============================================
+# barplots - beanchmark multiple results 
+# ============================================
+def plot_global_comparison(data, 
+                           save_path = None):
+
+    # Set seaborn styling
+    sns.set_theme(style="whitegrid")
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    
+    # Global Correlation (Sorted descending)
+    global_corr_sorted = data.sort_values(by='Correlation', ascending=False)
+    sns.barplot(
+        data=global_corr_sorted,
+        y='Model',
+        x='Correlation',
+        hue = "Correlation",
+        palette='viridis',
+        legend=False,
+        ax=axes[0]
+    )
+    
+    axes[0].set_title('Global Correlation (Higher is Better)', pad=12, weight='bold', fontsize=12)
+    axes[0].set_xlabel('Correlation')
+    axes[0].set_ylabel('Model')
+    sns.despine(ax=axes[0], left=True, bottom=True)
+    
+    # Global RMSE (Sorted ascending)
+    global_rmse_sorted = data.sort_values(by='RMSE', ascending=True)
+    sns.barplot(
+        data=global_rmse_sorted,
+        y='Model',
+        x='RMSE',
+        hue = "RMSE",
+        palette='plasma_r',
+        legend=False,
+        ax=axes[1]
+    )
+    axes[1].set_title('Global RMSE (Lower is Better)', pad=12, weight='bold', fontsize=12)
+    axes[1].set_xlabel('RMSE')
+    axes[1].set_ylabel('')
+    sns.despine(ax=axes[1], left=True, bottom=True)
+    
+    plt.suptitle('Overall Global Model Performance Summary', fontsize=15, weight='bold', y=1.02)
+    plt.tight_layout()
+
+    if save_path: 
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.show()
     
