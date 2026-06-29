@@ -1,6 +1,7 @@
 <h1 align="left">
   <img src="docs/deconversation.png" width="500">
 </h1>
+[![PyPI version](https://img.shields.io/pypi/v/DECONVersation.svg)](https://pypi.org/project/DECONVersation/)
 
 DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. Currently, embeddings from Geneformer, Cell2Sentence, CellHermes, and scGPT are supported.
 
