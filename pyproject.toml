@@ -30,6 +30,7 @@ dependencies = [
     "datasets",
     "transformers",
     "peft",
+    "tqdm",
 ]
 [tool.setuptools.packages.find]
 include = ["deconversation"]
@@ -40,9 +41,6 @@ build-backend = "setuptools.build_meta"
 [project.urls]
 Homepage = "https://github.com/Eastmanmd/DECONVersation"
 Issues = "https://github.com/Eastmanmd/DECONVersation/issues"
-[project.optional-dependencies]
-geneformer = ["geneformer"]
-cell2sentence = ["cell2sentence @ git+https://github.com/vandijklab/cell2sentence.git"]
-cellhermes = ["llamafactory"]
-scgpt = ["scgpt @ git+https://github.com/bowang-lab/scGPT.git"]
-scvi = ["scvi-tools"]
+# Optional model are not listed as extras, since installation is non-trivial;
+# geneformer, cell2sentence, scgpt, cellhermes (llamafactory), scvi-tools
+# see README and corresponding repositories
