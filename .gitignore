@@ -20,5 +20,9 @@ scripts/
 .ipynb_checkpoints/README-checkpoint.md
 
 __pycache__/
+
+# Ignore temp files
+*.swp
+*.pyc
 *.pyc
 
