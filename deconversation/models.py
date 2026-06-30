@@ -517,7 +517,7 @@ def train_c2s_cell_classifier(
 # =====================================================
 #    LoRA Cell2Sentence Finetuning
 # =====================================================
-def train_c2s_cell_classifier(
+def train_geneformer_cell_classifier_LoRA(
     adata,
     cell_type_col,
     model_path,
@@ -595,7 +595,7 @@ def train_c2s_cell_classifier(
         lora_config = LoraConfig(
             r=4,
             lora_alpha=8,
-            target_modules=["q_proj", "v_proj"],
+            target_modules=["query_key_value", "dense"],
             lora_dropout=0.05,
             bias="none",
             task_type="CAUSAL_LM"
