@@ -2,15 +2,18 @@
 # Standard Libraries
 # ===============================
 import os
+import gc
 import pickle
 import warnings
 import logging
+import anndata
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
 import numpy as np
 import pandas as pd
 import scanpy as sc
+import time
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, f1_score
 
@@ -22,8 +25,8 @@ logger = logging.getLogger(__name__)
 # ===============================
 import torch
 from datasets import load_from_disk
-from transformers import BertForSequenceClassification, TrainingArguments, Trainer
-from peft import LoraConfig, get_peft_model, TaskType
+from transformers import BertForSequenceClassification, TrainingArguments, Trainer, AutoModelForCausalLM, BitsAndBytesConfig
+from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
 
 
 # ===============================
@@ -38,8 +41,23 @@ except ImportError:
     print("geneformer is not installed. Skipping related functions.")
 
 
+# ===============================
+# Cell2Sentence
+# ===============================
+try:
+    import cell2sentence as cs
+    print("Cell2Sentence successfully imported.")
+    
+except ImportError:
+    print("Cell2Sentence is not installed. Skipping related functions.")
+
+
+# =================================================
+#    Full Geneformer Finetuning
+# =================================================
+
 # Default training arguments
-# -------------------------------------------------------------------
+# -------------------------------------------
 DEFAULT_TRAINING_ARGS = {
     "num_train_epochs": 3,
     "learning_rate": 5e-5,
@@ -52,9 +70,7 @@ DEFAULT_TRAINING_ARGS = {
     "fp16": True,
 }
 
-# =====================================
-#    Full Geneformer Finetuning
-# =====================================
+
 def train_geneformer_cell_classifier(
     adata,
     output_dir,
@@ -297,6 +313,7 @@ def train_geneformer_cell_classifier(
 # =====================================
 #    LoRA Geneformer Finetuning
 # =====================================
+    
 def train_geneformer_cell_classifier_LoRA(
     train_dataset, #tokenized training data 
     test_dataset, #tokenized test data 
@@ -390,4 +407,232 @@ def train_geneformer_cell_classifier_LoRA(
     # ────────────────── Save Model ─────────────────────────
     model.save_pretrained(model_save_dir)
 
+
+# =====================================================
+#    Full Cell2Sentence Finetuning
+# =====================================================
+
+DEFAULT_TRAIN_ARGS_C2S = TrainingArguments(
+    bf16=True,
+    fp16=False,
+    per_device_train_batch_size=4,
+    per_device_eval_batch_size=4,
+    gradient_accumulation_steps=2,
+    gradient_checkpointing=True,
+    learning_rate=1e-5,
+    load_best_model_at_end=True,
+    logging_steps=50,
+    logging_strategy="steps",
+    lr_scheduler_type="cosine",
+    num_train_epochs=10,
+    eval_steps=50,
+    evaluation_strategy="steps",
+    save_steps=100,
+    save_strategy="steps",
+    save_total_limit=3,
+    warmup_ratio=0.05,
+    output_dir="./tmp_output",  # overwritten at runtime
+    torch_empty_cache_steps=1,
+)
+
+
+def train_c2s_cell_classifier(
+    adata,
+    cell_type_col,
+    model_path,
+    c2s_save_dir,
+    c2s_save_name,
+    save_dir,
+    save_name,
+    seed,
+    tissue = "unknown",
+    batch = None,
+    sex_col = None,
+    organism = "Homo sapiens",
+    top_k_genes = 200,
+    max_eval_samples = 500,
+    train_args_override = None,
+):
+    # Merge training args
+    if train_args_override:
+        base = DEFAULT_TRAIN_ARGS_C2S.to_dict()
+        base.update(train_args_override)
+        train_args = TrainingArguments(**base)
+    else:
+        train_args = DEFAULT_TRAIN_ARGS_C2S
+
+    # Add Metadata
+    adata.obs["organism"] = organism
+    adata.obs["cell_type"] = adata.obs[cell_type_col]
+    adata.obs["tissue"] = tissue
+    adata.obs["sex"] = adata.obs[sex_col] if sex_col else "unknown"
+    adata.obs["batch_condition"] = adata.obs[batch] if batch else "unknown"
+
+    adata_obs_cols_to_keep = ["organism", "cell_type", "tissue", "sex", "batch_condition"]
+
+    # Build C2S dataset
+    arrow_ds, vocabulary = cs.CSData.adata_to_arrow(
+        adata=adata,
+        random_state=seed,
+        sentence_delimiter=" ",
+        label_col_names=adata_obs_cols_to_keep,
+    )
+    csdata = cs.CSData.csdata_from_arrow(
+        arrow_dataset=arrow_ds,
+        vocabulary=vocabulary,
+        save_dir=c2s_save_dir,
+        save_name=c2s_save_name+str(int(time.time() * 1000)),
+        dataset_backend="arrow",
+    )
+
+    # Load model and resolve output dir
+    csmodel = cs.CSModel(
+        model_name_or_path=model_path,
+        save_dir=save_dir,
+        save_name=save_name,
+    )
+    training_task = "cell_type_prediction"
+    datetimestamp = datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
+    output_dir = os.path.join(csmodel.save_dir, f"{datetimestamp}_finetune_{training_task}")
+    os.makedirs(output_dir, exist_ok=True)
+    train_args = TrainingArguments(**{**train_args.to_dict(), "output_dir": output_dir})
+
+    # Free memory before training
+    del arrow_ds, adata
+    torch.cuda.empty_cache()
+    gc.collect()
+
+    # Fine-tune
+    csmodel.fine_tune(
+        csdata=csdata,
+        task=training_task,
+        train_args=train_args,
+        loss_on_response_only=False,
+        top_k_genes=top_k_genes,
+        max_eval_samples=max_eval_samples,
+    )
+
+
+
+# =====================================================
+#    LoRA Cell2Sentence Finetuning
+# =====================================================
+def train_c2s_cell_classifier(
+    adata,
+    cell_type_col,
+    model_path,
+    c2s_save_dir,
+    c2s_save_name,
+    save_dir,
+    save_name,
+    seed,
+    tissue = "unknown",
+    batch = None,
+    sex_col = None,
+    organism = "Homo sapiens",
+    top_k_genes = 200,
+    max_eval_samples = 500,
+    train_args_override = None,
+):
+    # Merge training args
+    if train_args_override:
+        base = DEFAULT_TRAIN_ARGS_C2S.to_dict()
+        base.update(train_args_override)
+        train_args = TrainingArguments(**base)
+    else:
+        train_args = DEFAULT_TRAIN_ARGS_C2S
+
+    # Add Metadata
+    adata.obs["organism"] = organism
+    adata.obs["cell_type"] = adata.obs[cell_type_col]
+    adata.obs["tissue"] = tissue
+    adata.obs["sex"] = adata.obs[sex_col] if sex_col else "unknown"
+    adata.obs["batch_condition"] = adata.obs[batch] if batch else "unknown"
+
+    adata_obs_cols_to_keep = ["organism", "cell_type", "tissue", "sex", "batch_condition"]
+
+    # Build C2S dataset
+    arrow_ds, vocabulary = cs.CSData.adata_to_arrow(
+        adata=adata,
+        random_state=seed,
+        sentence_delimiter=" ",
+        label_col_names=adata_obs_cols_to_keep,
+    )
+    csdata = cs.CSData.csdata_from_arrow(
+        arrow_dataset=arrow_ds,
+        vocabulary=vocabulary,
+        save_dir=c2s_save_dir,
+        save_name=c2s_save_name+str(int(time.time() * 1000)),
+        dataset_backend="arrow",
+    )
+
+    # Free memory before loading the model
+    del arrow_ds, adata
+    torch.cuda.empty_cache()
+    gc.collect()
+
+    # ---- MONKEY PATCH FOR LORA INTEGRATION ----
+    original_from_pretrained = AutoModelForCausalLM.from_pretrained
+
+    def quantized_lora_from_pretrained(*args, **kwargs):
+        # 1. Inject 4-bit Quantization Config
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True
+        )
+        kwargs['quantization_config'] = bnb_config
+        kwargs['device_map'] = 'auto'
+
+        # 2. Load the base model using original HF function
+        model = original_from_pretrained(*args, **kwargs)
+
+        # 3. Prepare for k-bit training (freeze base weights, handle layer norms)
+        model = prepare_model_for_kbit_training(model)
+
+        # 4. Inject LoRA adapters
+        lora_config = LoraConfig(
+            r=4,
+            lora_alpha=8,
+            target_modules=["q_proj", "v_proj"],
+            lora_dropout=0.05,
+            bias="none",
+            task_type="CAUSAL_LM"
+        )
+        model = get_peft_model(model, lora_config)
+        
+        print("LoRA successfully applied to internal cell2sentence model!")
+        model.print_trainable_parameters()
+        return model
+
+    # Apply the patch immediately before CSModel initialization
+    AutoModelForCausalLM.from_pretrained = quantized_lora_from_pretrained
+    # --------------------------------------------
+
+    # Load model (triggers the monkey patch)
+    csmodel = cs.CSModel(
+        model_name_or_path=model_path,
+        save_dir=save_dir,
+        save_name=save_name,
+    )
     
+    # Restore original function to avoid messing up global namespace
+    AutoModelForCausalLM.from_pretrained = original_from_pretrained
+
+    # Resolve output dir
+    training_task = "cell_type_prediction"
+    datetimestamp = datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
+    output_dir = os.path.join(csmodel.save_dir, f"{datetimestamp}_finetune_{training_task}")
+    os.makedirs(output_dir, exist_ok=True)
+    train_args = TrainingArguments(**{**train_args.to_dict(), "output_dir": output_dir})
+
+    # Fine-tune
+    csmodel.fine_tune(
+        csdata=csdata,
+        task=training_task,
+        train_args=train_args,
+        loss_on_response_only=False,
+        top_k_genes=top_k_genes,
+        max_eval_samples=max_eval_samples,
+    )
