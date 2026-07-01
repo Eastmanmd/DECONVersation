@@ -4,6 +4,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/DECONVersation.svg)](https://pypi.org/project/DECONVersation/)
 [![Downloads](https://static.pepy.tech/badge/DECONVersation)](https://pypi.org/project/DECONVersation/)
+![Github action](https://github.com/Eastmanmd/DECONVersation/actions/workflows/python-app.yml/badge.svg)
 
 DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. Currently, embeddings from Geneformer, Cell2Sentence, CellHermes, and scGPT are supported.
 
