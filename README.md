@@ -100,6 +100,11 @@ Across 6 benchmarked datasets, we show overall RMSE and correlation coefficient 
 
 ---
 
+## Installation
+While DECONVersation itself is lightweight and easy to install with `pip install DECONVersation`, the various single cell foundation models themselves are not. In fact they are likely never able to be installed in the same python environment. Users should follow the correpsonding installation guides. We also provide conda env yaml files in the `envs` directory that are reproducibly operational on our hardware (NVIDIA L40S), each corresponding to one of the scFMs + DECONVersation. They can be installed with e.g. `conda env create -f deconv_gf.yml`.
+
+---
+
 ## Suggested Reading
 - [Geneformer](https://www.nature.com/articles/s41586-023-06139-9) Transfer learning enables predictions in network biology
 - [Cell2Sentence](https://pmc.ncbi.nlm.nih.gov/articles/PMC11565894/) Cell2Sentence: Teaching Large Language Models the Language of Biology
