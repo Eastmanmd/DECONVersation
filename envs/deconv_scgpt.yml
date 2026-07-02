@@ -1,0 +1,49 @@
+name: deconv_scgpt_test
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.10
+  - pip
+  - r-base
+  - numpy=1.25.2
+  - pandas=1.5.3
+  - scipy
+  - scikit-learn
+  - matplotlib
+  - seaborn
+  - numba
+  - tqdm
+  - packaging
+  - scanpy=1.9.3
+  - anndata=0.9.2
+  - mudata=0.2.3
+  - scvi-tools=0.20.3
+  - scib=1.1.7
+  - leidenalg
+  - umap-learn
+  - scikit-misc
+  - datasets=2.20
+  - pyarrow
+  - faiss-cpu
+  - wandb
+  - setuptools<81
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu124  
+      - numpy==1.25.2
+      - pandas==1.5.3
+      - anndata==0.9.2
+      - array-api-compat==1.14.0
+      - cell-gears==0.0.2
+      - dcor==0.7
+      - einops==0.8.2
+      - flash-attn==1.0.3.post0
+      - orbax==0.1.7
+      - git+https://github.com/bowang-lab/scGPT/
+      - triton
+      - torch==2.4.1+cu124
+      - torchtext
+      - ipython==8.37.0
+      - DECONVersation
+variables:
+  PYTHONNOUSERSITE: "1"
