@@ -6,7 +6,7 @@
 [![Downloads](https://static.pepy.tech/badge/DECONVersation)](https://pypi.org/project/DECONVersation/)
 [![Github action](https://github.com/Eastmanmd/DECONVersation/actions/workflows/python-app.yml/badge.svg)](https://github.com/Eastmanmd/DECONVersation/tree/main/envs)
 
-DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. Currently, cell embeddings from Geneformer, Cell2Sentence, CellHermes, and scGPT are supported (+PCA and scVI for comparison).
+DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. Currently, cell embeddings from [Geneformer](https://huggingface.co/ctheodoris/Geneformer), [Cell2Sentence](https://github.com/vandijklab/cell2sentence), [CellHermes](https://github.com/theislab/CellHermes), and [scGPT](https://github.com/bowang-lab/scGPT) are supported (+PCA and scVI for comparison). DECONVersation supports end-to-end deconvolution through a set of easy-to-use functions. Embeddings can be extracted from both bulk and single-cell datasets, with single-cell embeddings used to construct robust signature matrices from .h5ad references. Cell type proportions are then estimated via NNLS directly in embedding space. Built-in benchmarking tools evaluate predictions against ground truth using RMSE and Pearson correlation, complemented by visualization utilities for assessing method performance. DECONVersation also supports testing and validation with in-built pseudobulk functions. 
 
 ```mermaid
 ---
@@ -14,7 +14,7 @@ config:
   theme: 'neutral'
 ---
 flowchart
-    subgraph ide1 [standard]
+    subgraph ide1 [standard deconv]
     direction TB 
     A[scRNA: cell x gene] --> B(full profile: type x gene)
     A[scRNA: cell x gene] --> C(markers)
@@ -25,7 +25,7 @@ flowchart
     D db@==> E{{deconv res:
     sample x type%}}
     end
-    subgraph ide2 [foundation model]
+    subgraph ide2 [foundation model deconv]
     direction TB
     A1[scRNA: cell x gene] --> B1(full profile: type x gene)
     A1[scRNA: cell x gene] --> C1([fa:fa-robot fine-tuned model])
@@ -50,24 +50,6 @@ style C1 fill:red,color:#fff
 style E stroke-width:4px
 style E1 stroke-width:4px
 ```
-
----
-
-## Overview
-
-This project provides:
-
-- Installation guide for DECONVersation
-- Step-by-step tutorials for embedding extraction and downstream deconvolution analysis
-- Sample pseudobulk dataset for deconvolution testing 
-- Perfomance evaluation comparing estimates from DECONVersation and other deconvolution tools
-- Guide to finetuning foundational models using DECONVersation
-
----
-
-## DECONVersation Features
-
-DECONVersation supports end-to-end deconvolution through a set of easy-to-use functions. [Geneformer](https://huggingface.co/ctheodoris/Geneformer), [Cell2Sentence](https://github.com/vandijklab/cell2sentence), [CellHermes](https://github.com/theislab/CellHermes), and [scGPT](https://github.com/bowang-lab/scGPT) embeddings can be extracted from both bulk and single-cell datasets, with single-cell embeddings used to construct robust signature matrices from .h5ad references. Cell type proportions are then estimated via NNLS directly in embedding space. Built-in benchmarking tools evaluate predictions against ground truth using RMSE and Pearson correlation, complemented by visualization utilities for assessing method performance. DECONVersation also supports testing and validation with in-built pseudobulk functions. 
 
 ---
 
