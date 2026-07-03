@@ -6,7 +6,9 @@
 [![Downloads](https://static.pepy.tech/badge/DECONVersation)](https://pypi.org/project/DECONVersation/)
 [![Github action](https://github.com/Eastmanmd/DECONVersation/actions/workflows/python-app.yml/badge.svg)](https://github.com/Eastmanmd/DECONVersation/tree/main/envs)
 
-DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. This takes advantage of the strengths of scFMs in faithfullly representing transcriptomes, learning meaningful biological networks, and minimizing batch effect and noise. Currently, cell embeddings from [Geneformer](https://huggingface.co/ctheodoris/Geneformer), [Cell2Sentence](https://github.com/vandijklab/cell2sentence), [CellHermes](https://github.com/theislab/CellHermes), and [scGPT](https://github.com/bowang-lab/scGPT) are supported (+PCA and scVI for comparison). DECONVersation supports end-to-end deconvolution through a set of easy-to-use functions. Embeddings can be extracted from both bulk and single-cell datasets, with single-cell embeddings used to construct robust signature matrices from .h5ad references. Cell type proportions are then estimated via NNLS directly in embedding space. Built-in benchmarking tools evaluate predictions against ground truth using RMSE and Pearson correlation, complemented by visualization utilities for assessing method performance. DECONVersation also supports testing and validation with in-built pseudobulk functions. 
+DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. This takes advantage of the strengths of scFMs in faithfullly representing transcriptomes, learning meaningful biological networks, and minimizing batch effect and noise. Currently, cell embeddings from [Geneformer](https://huggingface.co/ctheodoris/Geneformer), [Cell2Sentence](https://github.com/vandijklab/cell2sentence), [CellHermes](https://github.com/theislab/CellHermes), and [scGPT](https://github.com/bowang-lab/scGPT) are supported (+PCA and scVI for comparison). 
+
+DECONVersation enables end-to-end deconvolution through a set of easy-to-use functions. Embeddings can be extracted from both bulk and single-cell datasets, with single-cell embeddings used to construct robust signature matrices from .h5ad references. Cell type proportions are then estimated via NNLS directly in embedding space. Built-in benchmarking tools evaluate predictions against ground truth using RMSE and Pearson correlation, complemented by visualization utilities for assessing method performance. DECONVersation also supports testing and validation with in-built pseudobulk functions. 
 
 ```mermaid
 ---
@@ -62,7 +64,7 @@ DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground t
 </h1>
 
 <b> Summary </b> <br>
-Across 6 benchmarked datasets, we show overall RMSE and correlation coefficient alongside mean RMSE and correlation averaged across cell types. Fine-tuned Cell2Sentence and Geneformer-based embeddings both demonstrate consistent deconvolution performance across all 6 datasets, with fine-tuned models outperforming their zero-shot counterparts in each case. This highlights the importance of finetuning. Finetuning was achieved by training models to predict cell type annotations from a single-cell reference. Among the compared methods, only DWLS achieves comparable performance to the fine-tuned embedding-based approaches available on DECONVersation.
+Across 6 benchmarked datasets, we calculate overall RMSE and correlation coefficient alongside mean RMSE and correlation averaged across cell types. Fine-tuned Cell2Sentence and Geneformer-based embeddings both demonstrate consistent deconvolution performance across all 6 datasets, with fine-tuned models outperforming their zero-shot counterparts in each case. Though zero-shot performance is already comparable to some common tools in the field, this highlights the benefit of fine-tuning (training models to predict cell type annotations from a single-cell reference). Among the tested tools, only DWLS R pacakge achieves comparable performance to the fine-tuned embedding-based approaches available in DECONVersation.
 
 | # | Dataset | Source | Ground Truth | Cell Type # | 
 | -------- | -------- | --------  | --------  | --------  |
@@ -82,8 +84,8 @@ While DECONVersation itself is lightweight and easy to install with `pip install
 
 ## Tutorials
 
-- [DECONVersation on bulk RNA-seq using Geneformer](tutorials/extracting_embeddings_from_bulk.ipynb): How to extract embeddings (using geneformer)and run DECONVersation on bulk using a single cell reference.
-- [DECONVersation on pseudobulk using Geneformer](tutorials/extracting_embeddings_from_pseudobulk.ipynb): Validate deconvolution using pseudobulk data 
+- [DECONVersation on bulk RNA-seq using Geneformer](tutorials/extracting_embeddings_from_bulk.ipynb): How to extract embeddings and deconvolute on bulk against a single cell reference.
+- [DECONVersation on pseudobulk using Geneformer](tutorials/extracting_embeddings_from_pseudobulk.ipynb): Validate deconvolution using pseudobulk data.
 
 ---
 
