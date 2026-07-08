@@ -3,6 +3,7 @@
 </h1>
 
 [![PyPI version](https://img.shields.io/pypi/v/DECONVersation.svg)](https://pypi.org/project/DECONVersation/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/release/python-380/)
 [![Downloads](https://static.pepy.tech/badge/DECONVersation)](https://pypi.org/project/DECONVersation/)
 [![Github action](https://github.com/Eastmanmd/DECONVersation/actions/workflows/python-app.yml/badge.svg)](https://github.com/Eastmanmd/DECONVersation/tree/main/envs)
 
