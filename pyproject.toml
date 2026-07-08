@@ -1,6 +1,6 @@
 [project]
 name = "DECONVersation"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Ali Oku", email="aoku@nygenome.org" },
   { name="Rui Fu", email="rfu@nygenome.org" }

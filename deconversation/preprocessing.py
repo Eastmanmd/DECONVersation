@@ -159,7 +159,7 @@ def gene_id_name_map(
 def create_signature_matrix(
     adata,
     sample_col,
-    celltype_col,
+    cell_type_col,
     groupby,
     sample_ids = None,
     celltypes = None,
@@ -204,7 +204,7 @@ def create_signature_matrix(
     # ----------------------------
 
     # validate columns in anndata
-    for col in [sample_col, celltype_col, groupby]:
+    for col in [sample_col, cell_type_col, groupby]:
         if col not in adata.obs.columns:
             raise ValueError(f"Column '{col}' not found in adata.obs.")
 
@@ -217,7 +217,7 @@ def create_signature_matrix(
 
     # Subset by select cell types
     if celltypes is not None:
-        adata = adata[adata.obs[celltype_col].isin(celltypes)].copy()
+        adata = adata[adata.obs[cell_type_col].isin(celltypes)].copy()
         if adata.n_obs == 0:
             raise ValueError("No cells remain after subsetting by celltypes.")
 
