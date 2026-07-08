@@ -1,7 +1,7 @@
-#from . import preprocessing,embeddings,deconvolution
-import preprocessing
-import embeddings
-import deconvolution
+from . import preprocessing,embeddings,deconvolution
+#import preprocessing
+#import embeddings
+#import deconvolution
 import pandas as pd
 import scanpy as sc
 # ============================================
