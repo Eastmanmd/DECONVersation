@@ -58,7 +58,7 @@ def generate_pseudobulk(
 
     # validate cell type column presence in anndata
     if cell_type_col not in adata.obs.columns:
-        raise ValueError(f"Column '{col}' not found in adata.obs.")
+        raise ValueError(f"Column '{cell_type_col}' not found in adata.obs.")
     
     # Get unique cell types
     all_cell_types = adata.obs[cell_type_col].unique()

@@ -36,7 +36,7 @@ Parameters
         scFM model used, support: 
         - "geneformer"
         - "c2s"
-        - "ch"
+        - "cellhermes"
         - "scgpt"
     
     temp_output_dir : str
@@ -65,7 +65,7 @@ Parameters
 
     # load bulk query data
     bulk_df = pd.read_csv(bulk_df, index_col=0)
-    if mode == "geneformer":
+    if mode == "geneformer" and ("ENS" not in bulk_df.index[0]):
         bulk_df.index = preprocessing.gene_id_name_map(gene_list=bulk_df.index, mode="to_ensembl" )
     bulk_df = bulk_df.loc[bulk_df.index.dropna()].T
 

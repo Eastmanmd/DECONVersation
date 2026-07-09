@@ -154,8 +154,8 @@ def extract_components(
     if mode == "pca":
         dims = get_embedding_pca(bulk_df, 
                       sig_mat, 
-                      transform=True, 
-                      n_components=50)
+                      transform=transform, 
+                      n_components=n_components)
 
     return dims
         
@@ -180,8 +180,8 @@ def get_embedding_gf(
 
     Parameters
     ----------
-    input_csv : str
-        Path to input pseudobulk CSV (samples x Ensembl IDs).
+    bulk_df : pd.DataFrame
+        Input pseudobulk (samples x Ensembl IDs).
     token_output_dir : str
         Directory to save tokenized outputs.  
     token_output_name : str
@@ -338,8 +338,8 @@ def get_embedding_c2s(
 
     Parameters
     ----------
-    input_csv : str
-        Path to expression matrix (samples x genes). 
+    bulk_df : pd.DataFrame
+        Expression matrix (samples x genes). 
     c2s_save_dir : str
         Directory to save CSData object.
     c2s_save_name : str
@@ -410,7 +410,7 @@ def get_embedding_c2s(
         bulk_df.columns = bulk_df.columns.str.replace(gene_name_rm, "", regex=True)
 
     if use_genes is not None:
-        missing = set(use_genes) - set(data.columns)
+        missing = set(use_genes) - set(bulk_df.columns)
         if missing:
             raise ValueError(f"Some requested genes not found: {missing}")
         bulk_df = bulk_df[use_genes]

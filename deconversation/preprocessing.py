@@ -236,11 +236,16 @@ def create_signature_matrix(
         )
 
     # Throw warning if not raw counts 
-    warnings.warn(
-        "Expression matrix contains non-integer values. "
-        "Raw counts are expected. ",
-        UserWarning
-    )
+    data_subset = adata.X[:100, :100]
+    if hasattr(data_subset, "toarray"):  # Handle sparse matrices
+        data_subset = data_subset.toarray()
+    is_integer = np.all(data_subset == np.floor(data_subset))
+    if not is_integer:
+        warnings.warn(
+            "Expression matrix contains non-integer values. "
+            "Raw counts are expected. ",
+            UserWarning
+        )
 
     # Add grouping variable
     expr[groupby] = adata.obs[groupby].values
