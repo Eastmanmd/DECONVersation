@@ -12,7 +12,7 @@ def deconverse(
     adata: str,
     model_path: str,
     mode: str,
-    temp_output_dir: str,
+    temp_output_dir: str = "temp",
     cell_type_col: str = "type",
     solver: str = "nnls",
 ) -> pd.DataFrame:
