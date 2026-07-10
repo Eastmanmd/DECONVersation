@@ -201,7 +201,7 @@ def load_results(folder_path, ground_truth_file):
             })
         results.append({
             'Model': model_name, 'CellType': 'Global',
-            'Correlation': df.corrwith(gt_df, axis=0).mean(),
+            'Correlation': df.corrwith(gt_df, axis=0).fillna(0).mean(),
             'RMSE': np.sqrt(mean_squared_error(gt_df, df)),
         })
     return pd.DataFrame(results)
