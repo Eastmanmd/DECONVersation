@@ -281,7 +281,7 @@ def get_embedding_gf(
         model,
         filtered_input_data,
         emb_mode="cell",
-        layer_to_quant=18,
+        layer_to_quant=17,
         pad_token_id=pad_token_id,
         token_gene_dict=token_gene_dict,
         special_token=True,
