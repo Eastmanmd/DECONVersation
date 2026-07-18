@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from scipy.optimize import nnls
+from scipy.optimize import nnls, minimize
 from sklearn.linear_model import Ridge, Lasso, ElasticNet
 from sklearn.svm import NuSVR
 
@@ -81,21 +81,56 @@ def run_deconv(
         
         if solver == "nnls":
             coeffs, _ = nnls(X, y)
-            if normalize and coeffs.sum() > 0:
-                coeffs = coeffs / coeffs.sum()
+            #if normalize and coeffs.sum() > 0:
+            #    coeffs = coeffs / coeffs.sum()
+        
+        elif solver == "nnls_mod":
+            X_aug = np.vstack([X, 1000 * np.ones((1, X.shape[1]))])
+            y_aug = np.append(y, 1000)
+            coeffs, _ = nnls(X_aug, y_aug)
+        
+        elif solver == "dwls":
+            coeffs, _ = nnls(X, y)  # initial fit
+            for _ in range(4):
+                y_hat = X @ coeffs
+                y_hat = np.clip(y_hat, 1e-6, None)
+                w = 1.0 / (y_hat ** 2)
+                lo, hi = np.quantile(w, [0.05, 1 - 0.05])
+                w = np.clip(w, lo, hi)
+                sw = np.sqrt(w)
+                coeffs, _ = nnls(X * sw[:, None], y * sw)
+        
+        elif solver == "simplex":
+            coeffs = _simplex_ls(X, y)
 
+        elif solver == "ridge_simplex":
+            coeffs = _simplex_ls(X, y, alpha=1.0)
+
+        elif solver == "dwls_simplex":
+            coeffs = _simplex_ls(X, y)  # initial fit
+            for _ in range(4):
+                y_hat = np.clip(X @ coeffs, 1e-6, None)
+                w = 1.0 / (y_hat ** 2)
+                lo, hi = np.quantile(w, [0.05, 1 - 0.05])
+                w = np.clip(w, lo, hi)
+                coeffs = _simplex_ls(X, y, weights=w)
+        
         elif solver == "ridge":
-            model = Ridge(alpha=1.0, positive=True)
+            model = Ridge(alpha=1.0, positive=True, fit_intercept=False)
             coeffs = model.fit(X, y).coef_
 
         elif solver == "elasticnet":
-            model = ElasticNet(alpha=0.1, l1_ratio=0.5, positive=True)
+            model = ElasticNet(alpha=0.1, l1_ratio=0.5, positive=True, fit_intercept=False)
             coeffs = model.fit(X, y).coef_
         
         elif solver == "nusvr":
             model = NuSVR(kernel='linear', nu=0.5, C=1.0)
             coeffs = model.fit(X, y).coef_.ravel()
-
+            coeffs = np.clip(coeffs, 0, None)
+        
+        if normalize and coeffs.sum() > 0:
+            coeffs = coeffs / coeffs.sum()
+        
         proportions.append(coeffs)
 
     proportions_df = pd.DataFrame(
@@ -106,4 +141,25 @@ def run_deconv(
 
     return proportions_df
 
-    
+def _simplex_ls(X, y, weights=None, alpha=0.0, prior=None):
+        n = X.shape[1]
+        p0 = np.full(n, 1.0 / n)
+        w = weights if weights is not None else np.ones_like(y)
+
+        def obj(p):
+            resid = X @ p - y
+            wr = w * resid
+            val = wr @ resid
+            grad = 2 * X.T @ wr
+            if alpha > 0:
+                pr = prior if prior is not None else np.full(n, 1.0 / n)
+                val += alpha * np.sum((p - pr) ** 2)
+                grad += 2 * alpha * (p - pr)
+            return val, grad
+
+        cons = [{"type": "eq", "fun": lambda p: p.sum() - 1.0,
+                 "jac": lambda p: np.ones(n)}]
+        res = minimize(obj, p0, jac=True, bounds=[(0, None)] * n,
+                        constraints=cons, method="SLSQP",
+                        options={"maxiter": 500, "ftol": 1e-10})
+        return res.x
