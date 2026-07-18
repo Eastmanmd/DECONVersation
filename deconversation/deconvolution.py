@@ -4,6 +4,8 @@ import pandas as pd
 from scipy.optimize import nnls, minimize
 from sklearn.linear_model import Ridge, Lasso, ElasticNet
 from sklearn.svm import NuSVR
+from typing import Dict, List, Optional
+
 
 # ============================================
 # Non-Negative Least Squares (NNLS)
@@ -163,3 +165,35 @@ def _simplex_ls(X, y, weights=None, alpha=0.0, prior=None):
                         constraints=cons, method="SLSQP",
                         options={"maxiter": 500, "ftol": 1e-10})
         return res.x
+
+
+
+
+def run_all_deconv(
+    bulk_df: pd.DataFrame,
+    signature_df: pd.DataFrame,
+    solvers: Optional[List[str]] = None,
+    normalize: bool = True,
+    skip_errors: bool = True,
+) -> Dict[str, pd.DataFrame]:
+
+    # If none return all solvers 
+    if solvers is None:
+        solvers = [
+            "nnls", "nnls_mod", "dwls",
+            "simplex", "ridge_simplex", "dwls_simplex",
+            "ridge", "elasticnet", "nusvr",
+        ]
+
+    results = {}  
+    for solver in solvers:
+        try:
+            results[solver] = run_deconv(
+                bulk_df, signature_df, solver=solver, normalize=normalize
+            )
+        except Exception as e:
+            print("  [skipped] {} failed: {}: {}".format(
+                solver, type(e).__name__, e))
+            if not skip_errors:
+                raise
+    return results
