@@ -187,6 +187,7 @@ def run_all_deconv(
 
     results = {}  
     for solver in solvers:
+        print(f"Running solver: {solver}")
         try:
             results[solver] = run_deconv(
                 bulk_df, signature_df, solver=solver, normalize=normalize
