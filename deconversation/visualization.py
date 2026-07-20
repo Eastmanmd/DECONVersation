@@ -264,7 +264,7 @@ def plot_cell_type_heatmaps(data,
 
 
 # ============================================
-# barplots - beanchmark multiple results 
+# barplots - benchmark multiple results 
 # ============================================
 def plot_global_comparison(data, 
                            save_path = None):
@@ -312,4 +312,152 @@ def plot_global_comparison(data,
     if save_path: 
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.show()
+
+
+
+# ======================================================
+# barplots - Visualize results across all solvers tested 
+# ======================================================
+def visualize_solvers(
+    results, ground_truth, return_tables=False, save_prefix=None
+):
+    def _safe_corr(a, b):
+        if np.std(a) == 0 or np.std(b) == 0:
+            return np.nan
+        return np.corrcoef(a, b)[0, 1]
+
+    global_rows, celltype_rows = [], []
+    for solver, pred in results.items():
+        samples = pred.index.intersection(ground_truth.index)
+        celltypes = pred.columns.intersection(ground_truth.columns)
+        if len(samples) == 0 or len(celltypes) == 0:
+            print(f"[skipped] {solver}: no overlapping samples/cell types")
+            continue
+
+        p = pred.loc[samples, celltypes]
+        g = ground_truth.loc[samples, celltypes]
+
+        pv, gv = p.values.ravel(), g.values.ravel()
+        global_rows.append(
+            {
+                "Model": solver,
+                "Correlation": _safe_corr(pv, gv),
+                "RMSE": np.sqrt(np.mean((pv - gv) ** 2)),
+            }
+        )
+
+        for ct in celltypes:
+            pc, gc = p[ct].values, g[ct].values
+            celltype_rows.append(
+                {
+                    "Model": solver,
+                    "CellType": ct,
+                    "Correlation": _safe_corr(pc, gc),
+                    "RMSE": np.sqrt(np.mean((pc - gc) ** 2)),
+                }
+            )
+
+    global_df = pd.DataFrame(global_rows)
+    celltype_df = pd.DataFrame(celltype_rows)
+
+    data_sorted = celltype_df.sort_values(
+        by=["CellType", "Correlation"], ascending=[True, False]
+    )
+    model_order = list(dict.fromkeys(data_sorted["Model"].tolist()))
+    sorted_cell_types = (
+        celltype_df.groupby("CellType")["Correlation"]
+        .mean()
+        .sort_values(ascending=False)
+        .index
+    )
+
+    pivot_corr = (
+        celltype_df.pivot(index="Model", columns="CellType", values="Correlation")
+        .reindex(model_order)[sorted_cell_types]
+    )
+    pivot_rmse = (
+        celltype_df.pivot(index="Model", columns="CellType", values="RMSE")
+        .reindex(model_order)[sorted_cell_types]
+    )
+
+    sns.set_theme(style="white")
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+
+    sns.heatmap(
+        pivot_corr,
+        annot=True,
+        cmap="viridis",
+        fmt=".2f",
+        linewidths=0.5,
+        cbar_kws={"label": "Correlation (Higher is Better)"},
+        ax=axes[0],
+    )
+    axes[0].set_title("Correlation", pad=12, weight="bold", fontsize=13)
+    axes[0].set_xlabel("Cell Type", labelpad=10)
+    axes[0].set_ylabel("Model", labelpad=10)
+
+    sns.heatmap(
+        pivot_rmse,
+        annot=True,
+        cmap="plasma",
+        fmt=".3f",
+        linewidths=0.5,
+        cbar_kws={"label": "RMSE (Lower is Better)"},
+        ax=axes[1],
+    )
+    axes[1].set_title("RMSE", pad=12, weight="bold", fontsize=13)
+    axes[1].set_xlabel("Cell Type", labelpad=10)
+    axes[1].set_ylabel("")
+
+    plt.tight_layout()
+    if save_prefix:
+        plt.savefig(f"{save_prefix}_celltype.png", dpi=300, bbox_inches="tight")
+    plt.show()
+
+    sns.set_theme(style="whitegrid")
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    corr_sorted = global_df.sort_values(by="Correlation", ascending=False)
+    sns.barplot(
+        data=corr_sorted,
+        y="Model",
+        x="Correlation",
+        hue="Correlation",
+        palette="viridis",
+        dodge=False,
+        legend=False,
+        ax=axes[0],
+    )
+    axes[0].set_title(
+        "Global Correlation (Higher is Better)", pad=12, weight="bold", fontsize=12
+    )
+    axes[0].set_xlabel("Correlation")
+    axes[0].set_ylabel("Model")
+    sns.despine(ax=axes[0], left=True, bottom=True)
+
+    rmse_sorted = global_df.sort_values(by="RMSE", ascending=True)
+    sns.barplot(
+        data=rmse_sorted,
+        y="Model",
+        x="RMSE",
+        hue="RMSE",
+        palette="plasma_r",
+        dodge=False,
+        legend=False,
+        ax=axes[1],
+    )
+    axes[1].set_title(
+        "Global RMSE (Lower is Better)", pad=12, weight="bold", fontsize=12
+    )
+    axes[1].set_xlabel("RMSE")
+    axes[1].set_ylabel("")
+    sns.despine(ax=axes[1], left=True, bottom=True)
+
+    plt.tight_layout()
+    if save_prefix:
+        plt.savefig(f"{save_prefix}_global.png", dpi=300, bbox_inches="tight")
+    plt.show()
+
+    if return_tables:
+        return global_df, celltype_df
     
