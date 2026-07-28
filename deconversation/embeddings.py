@@ -25,8 +25,9 @@ try:
     from geneformer.emb_extractor import get_embs
     print("geneformer successfully imported.")
     
-except ImportError:
+except ImportError as e:
     print("geneformer is not installed. Skipping related functions.")
+    
 
 # ===============================
 # Cell2Sentence
