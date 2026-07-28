@@ -66,13 +66,11 @@ def run_deconv(
     bulk_df = bulk_df.loc[common_features]
     signature_df = signature_df.loc[common_features]
 
-    print(f"Using {len(common_features)} common features.")
+    #print(f"Using {len(common_features)} common features.")
 
     # --------------------------------------------------
     # Run NNLS 
     # --------------------------------------------------
-    print("Running deconvolution...")
-
     X = signature_df.values  
     celltypes = signature_df.columns
 
