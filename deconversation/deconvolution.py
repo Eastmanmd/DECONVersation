@@ -225,6 +225,9 @@ def run_all_deconv(
             "ridge", "elasticnet", "nusvr", "simplex_nnls"
         ]
 
+    X_unit = signature_df / np.linalg.norm(signature_df, axis=0, keepdims=True)
+    condition_number = np.linalg.cond(X_unit)
+    print(f"Condition number of signature matrix: {condition_number:.2f}\n" + "~1–10: signatures are well separated; NNLS is usually hard to improve materially with another solver.")
     results = {}  
     total_start = perf_counter()
     for solver in solvers:
