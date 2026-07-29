@@ -206,9 +206,6 @@ def _simplex_ls(X, y, weights=None, alpha=0.0, prior=None):
                         options={"maxiter": 500, "ftol": 1e-10})
         return res.x
 
-
-
-
 def run_all_deconv(
     bulk_df: pd.DataFrame,
     signature_df: pd.DataFrame,
@@ -225,9 +222,9 @@ def run_all_deconv(
             "ridge", "elasticnet", "nusvr", "simplex_nnls"
         ]
 
-    X_unit = signature_df / np.linalg.norm(signature_df, axis=0, keepdims=True)
-    condition_number = np.linalg.cond(X_unit)
-    print(f"Condition number of signature matrix: {condition_number:.2f}\n" + "~1–10: signatures are well separated; NNLS is usually hard to improve materially with another solver.")
+    # checks
+    check_signature(signature_df)
+        
     results = {}  
     total_start = perf_counter()
     for solver in solvers:
@@ -248,3 +245,40 @@ def run_all_deconv(
             flush=True,
         )
     return results
+
+def check_signature(signature_df: pd.DataFrame):
+    X = signature_df.to_numpy(dtype=float)  # rows = features, columns = cell types
+
+    column_norms = np.linalg.norm(X, axis=0)
+    if np.any(column_norms == 0):
+        raise ValueError("Signature matrix contains at least one zero-norm cell-type column.")
+
+    X_unit = X / column_norms[None, :]
+
+    singular_values = np.linalg.svd(X_unit, compute_uv=False)
+    condition_number = singular_values[0] / singular_values[-1]
+    smallest_singular_value = singular_values[-1]
+
+    cosine_matrix = X_unit.T @ X_unit
+    np.fill_diagonal(cosine_matrix, -np.inf)
+
+    i, j = np.unravel_index(cosine_matrix.argmax(), cosine_matrix.shape)
+    max_pairwise_cosine_similarity = cosine_matrix[i, j]
+
+    print(f"Condition number: {condition_number:.2f}.\n~1–10: signatures are well separated; NNLS is usually hard to improve materially with another solver.")
+    print(f"Smallest singular value: {smallest_singular_value:.4g}.\nIf the value is close to zero, the signature matrix is ill-conditioned; NNLS may be unstable and other solvers may be more robust.")
+    print(
+        f"Most similar pair: {signature_df.columns[i]} vs "
+        f"{signature_df.columns[j]} "
+        f"({max_pairwise_cosine_similarity:.4f})"
+    )
+
+    return {
+        "condition_number": condition_number,
+        "smallest_singular_value": smallest_singular_value,
+        "max_pairwise_cosine_similarity": max_pairwise_cosine_similarity,
+        "most_similar_pair": (
+            signature_df.columns[i],
+            signature_df.columns[j],
+        ),
+    }
