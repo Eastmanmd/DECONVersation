@@ -223,7 +223,7 @@ def run_all_deconv(
         ]
 
     # checks
-    check_signature(signature_df)
+    check_signature(signature_df.T)
         
     results = {}  
     total_start = perf_counter()
@@ -247,30 +247,54 @@ def run_all_deconv(
     return results
 
 def check_signature(signature_df: pd.DataFrame):
-    X = signature_df.to_numpy(dtype=float)  # rows = features, columns = cell types
+    """
+    Inspect signatures with rows=cell types and columns=embedding dimensions.
+    """
 
-    column_norms = np.linalg.norm(X, axis=0)
-    if np.any(column_norms == 0):
-        raise ValueError("Signature matrix contains at least one zero-norm cell-type column.")
+    signature_df = signature_df.loc[
+        :, signature_df.ne(0).any(axis=0)
+    ].copy()
 
-    X_unit = X / column_norms[None, :]
+    S = signature_df.to_numpy(dtype=float)
 
-    singular_values = np.linalg.svd(X_unit, compute_uv=False)
-    condition_number = singular_values[0] / singular_values[-1]
+    row_norms = np.linalg.norm(S, axis=1)
+    zero_cell_types = signature_df.index[np.isclose(row_norms, 0)]
+
+    if len(zero_cell_types):
+        raise ValueError(
+            "Zero-norm cell-type signatures: "
+            f"{zero_cell_types.tolist()}"
+        )
+
+    S_unit = S / row_norms[:, None]
+
+    singular_values = np.linalg.svd(S_unit, compute_uv=False)
+    condition_number = np.linalg.cond(S_unit)
     smallest_singular_value = singular_values[-1]
 
-    cosine_matrix = X_unit.T @ X_unit
+    cosine_matrix = S_unit @ S_unit.T
     np.fill_diagonal(cosine_matrix, -np.inf)
 
     i, j = np.unravel_index(cosine_matrix.argmax(), cosine_matrix.shape)
     max_pairwise_cosine_similarity = cosine_matrix[i, j]
 
-    print(f"Condition number: {condition_number:.2f}.\n~1–10: signatures are well separated; NNLS is usually hard to improve materially with another solver.")
-    print(f"Smallest singular value: {smallest_singular_value:.4g}.\nIf the value is close to zero, the signature matrix is ill-conditioned; NNLS may be unstable and other solvers may be more robust.")
     print(
-        f"Most similar pair: {signature_df.columns[i]} vs "
-        f"{signature_df.columns[j]} "
-        f"({max_pairwise_cosine_similarity:.4f})"
+        f"Condition number: {condition_number:.2f}.\n"
+        "~1-10: signatures are well separated; NNLS is usually hard "
+        "to improve materially with another solver."
+    )
+    print(
+        f"Smallest singular value: {smallest_singular_value:.4g}.\n"
+        "If value is close to zero, the signature matrix is "
+        "ill-conditioned; estimated proportions may be unstable."
+    )
+    print(
+        f"Max pairwise cosine similarity between cell types: "
+        f"{max_pairwise_cosine_similarity:.4f}.\n"
+        f"Most similar pair: {signature_df.index[i]} vs "
+        f"{signature_df.index[j]}.\n"
+        "If value is close to 1, these cell types are highly "
+        "similar and difficult to resolve separately."
     )
 
     return {
@@ -278,7 +302,7 @@ def check_signature(signature_df: pd.DataFrame):
         "smallest_singular_value": smallest_singular_value,
         "max_pairwise_cosine_similarity": max_pairwise_cosine_similarity,
         "most_similar_pair": (
-            signature_df.columns[i],
-            signature_df.columns[j],
+            signature_df.index[i],
+            signature_df.index[j],
         ),
     }
