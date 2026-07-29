@@ -5,7 +5,7 @@ from scipy.optimize import nnls, minimize
 from sklearn.linear_model import Ridge, Lasso, ElasticNet
 from sklearn.svm import NuSVR
 from typing import Dict, List, Optional
-
+from time import perf_counter
 
 # ============================================
 # Non-Negative Least Squares (NNLS)
@@ -128,6 +128,9 @@ def run_deconv(
             coeffs = model.fit(X, y).coef_.ravel()
             coeffs = np.clip(coeffs, 0, None)
         
+        elif solver == "simplex_nnls":
+            coeffs = simplex_nnls(X, y)
+
         if normalize and coeffs.sum() > 0:
             coeffs = coeffs / coeffs.sum()
         
@@ -140,6 +143,45 @@ def run_deconv(
     )
 
     return proportions_df
+
+def simplex_nnls(X, y, maxiter=500, ftol=1e-10):
+    """Fit nonnegative proportions that sum to one."""
+
+    X = np.asarray(X, dtype=float)
+    y = np.asarray(y, dtype=float).reshape(-1)
+
+    if X.ndim != 2 or X.shape[0] != y.shape[0]:
+        raise ValueError("X must be (features, cell_types) and match y.")
+
+    n_cell_types = X.shape[1]
+    hessian = X.T @ X
+    linear_term = X.T @ y
+
+    def objective(p):
+        return 0.5 * p @ hessian @ p - linear_term @ p
+
+    def gradient(p):
+        return hessian @ p - linear_term
+
+    result = minimize(
+        objective,
+        x0=np.full(n_cell_types, 1.0 / n_cell_types),
+        jac=gradient,
+        method="SLSQP",
+        bounds=[(0.0, None)] * n_cell_types,
+        constraints={
+            "type": "eq",
+            "fun": lambda p: p.sum() - 1.0,
+            "jac": lambda p: np.ones_like(p),
+        },
+        options={"maxiter": maxiter, "ftol": ftol},
+    )
+
+    if not result.success:
+        raise RuntimeError(f"Simplex NNLS failed: {result.message}")
+
+    proportions = np.clip(result.x, 0.0, None)
+    return proportions / proportions.sum()
 
 def _simplex_ls(X, y, weights=None, alpha=0.0, prior=None):
         n = X.shape[1]
@@ -180,11 +222,13 @@ def run_all_deconv(
         solvers = [
             "nnls", "nnls_mod", "dwls",
             "simplex", "ridge_simplex", "dwls_simplex",
-            "ridge", "elasticnet", "nusvr",
+            "ridge", "elasticnet", "nusvr", "simplex_nnls"
         ]
 
     results = {}  
+    total_start = perf_counter()
     for solver in solvers:
+        step_start = perf_counter()
         print(f"Running solver: {solver}")
         try:
             results[solver] = run_deconv(
@@ -195,4 +239,9 @@ def run_all_deconv(
                 solver, type(e).__name__, e))
             if not skip_errors:
                 raise
+        elapsed = perf_counter() - step_start
+        print(
+            f"Finished in {elapsed:.2f} seconds.",
+            flush=True,
+        )
     return results
