@@ -6,6 +6,8 @@ from sklearn.linear_model import Ridge, Lasso, ElasticNet
 from sklearn.svm import NuSVR
 from typing import Dict, List, Optional
 from time import perf_counter
+import torch
+import torch.nn.functional as F
 
 # ============================================
 # Non-Negative Least Squares (NNLS)
@@ -75,6 +77,15 @@ def run_deconv(
     celltypes = signature_df.columns
 
     proportions = []
+    
+    if solver == "gradient_descent":
+        y = bulk_df.values
+        coeffs = gd_decompose(X, y, loss="cosine", sum_to_one=True, regularization="l1", lam=0.01)
+        proportions_df = pd.DataFrame(
+                coeffs,
+                index=bulk_df.columns,
+                columns=celltypes)
+        return proportions_df
 
     for sample in bulk_df.columns:
         y = bulk_df[sample].values  
@@ -130,6 +141,9 @@ def run_deconv(
         
         elif solver == "simplex_nnls":
             coeffs = simplex_nnls(X, y)
+        
+        #elif solver == "gradient_descent":
+        #    coeffs = gd_decompose(X, y, loss="cosine", sum_to_one=True, regularization="l1", lam=0.01)
 
         if normalize and coeffs.sum() > 0:
             coeffs = coeffs / coeffs.sum()
@@ -143,6 +157,62 @@ def run_deconv(
     )
 
     return proportions_df
+
+def gd_decompose(
+    references,
+    mixture,
+    n_iter=1000,
+    lr=0.005,
+    loss="cosine",        # "mse" or "cosine"
+    regularization=None,  # None, "l1", or "entropy"
+    lam=0.01,
+    sum_to_one=True,
+):  
+    references = F.normalize(torch.tensor(references.T, dtype=torch.float32), dim=-1)
+    references = torch.tensor(references, dtype=torch.float32)
+    mixture = F.normalize(torch.tensor(mixture.T, dtype=torch.float32), dim=-1)
+    mixture = torch.tensor(mixture, dtype=torch.float32)
+
+    batched = mixture.ndim == 2
+    if not batched:
+        mixture = mixture.unsqueeze(0)
+
+    n_batch = mixture.shape[0]
+    n_sources = references.shape[0]
+
+    # Initialize weights
+    w = torch.zeros(n_batch, n_sources, requires_grad=True)
+    optimizer = torch.optim.Adam([w], lr=lr)
+
+    for i in range(n_iter):
+        optimizer.zero_grad()
+        w_pos = F.softplus(w)
+
+        if sum_to_one:
+            w_pos = w_pos / w_pos.sum(dim=-1, keepdim=True)
+
+        recon = w_pos @ references  # (batch, n_sources) x (n_sources, embed_dim)
+
+        if loss == "cosine":
+            loss_val = 1 - F.cosine_similarity(recon, mixture, dim=-1).mean()
+        else:
+            loss_val = F.mse_loss(recon, mixture)
+
+        if regularization == "l1":
+            loss_val = loss_val + lam * w_pos.mean()
+        elif regularization == "entropy":
+            p = w_pos / (w_pos.sum(dim=-1, keepdim=True) + 1e-8)
+            loss_val = loss_val - lam * (-(p * (p + 1e-8).log()).sum(dim=-1).mean())
+
+        loss_val.backward()
+        optimizer.step()
+
+    with torch.no_grad():
+        w_final = F.softplus(w)
+        if sum_to_one:
+            w_final = w_final / w_final.sum(dim=-1, keepdim=True)
+
+    return w_final.squeeze(0).numpy() if not batched else w_final.numpy()
 
 def simplex_nnls(X, y, maxiter=500, ftol=1e-10):
     """Fit nonnegative proportions that sum to one."""
@@ -219,7 +289,8 @@ def run_all_deconv(
         solvers = [
             "nnls", "nnls_mod", "dwls",
             "simplex", "ridge_simplex", "dwls_simplex",
-            "ridge", "elasticnet", "nusvr", "simplex_nnls"
+            "ridge", "elasticnet", "nusvr", "simplex_nnls",
+            "gradient_descent"
         ]
 
     # checks
