@@ -15,6 +15,7 @@ outputs/
 plots/
 rmd/
 scripts/
+results/
 
 .ipynb_checkpoints/
 .ipynb_checkpoints/README-checkpoint.md
