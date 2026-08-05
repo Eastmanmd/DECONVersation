@@ -3,6 +3,7 @@
 - added `deconverse` wrapper function
 - added fine-tuning (c2s, gf) functions
 - tweaked and added solvers
+- support geneformer embedding on cpu
 - documented envs installation guide
 ## [0.0.1]
 - inital release
