@@ -278,15 +278,27 @@ def get_embedding_gf(
     # -----------------------------
     
     print("Extracting Geneformer embeddings...")
-    state_embs_dict = get_embs(
-        model,
-        filtered_input_data,
-        emb_mode="cell",
-        layer_to_quant=17,
-        pad_token_id=pad_token_id,
-        token_gene_dict=token_gene_dict,
-        special_token=True,
-        forward_batch_size=50
+    if torch.cuda.is_available():
+        state_embs_dict = get_embs(
+            model,
+            filtered_input_data,
+            emb_mode="cell",
+            layer_to_quant=17,
+            pad_token_id=pad_token_id,
+            token_gene_dict=token_gene_dict,
+            special_token=True,
+            forward_batch_size=50
+        )
+    else:
+        state_embs_dict = get_embs_cpu(
+            model,
+            filtered_input_data,
+            emb_mode="cell",
+            layer_to_quant=17,
+            pad_token_id=pad_token_id,
+            token_gene_dict=token_gene_dict,
+            special_token=True,
+            forward_batch_size=5
     )
 
     # Return embeddings as dataframe
@@ -770,3 +782,205 @@ def get_embedding_pca(bulk_df,
         "pca_bulk": bulk_pca,
         "sig_pca": sig_pca
     }
+
+def get_embs_cpu(
+    model,
+    filtered_input_data,
+    emb_mode,
+    layer_to_quant,
+    pad_token_id,
+    forward_batch_size=1,
+    token_gene_dict=None,
+    special_token=False,  # retained for API compatibility; unused
+    summary_stat=None,
+    silent=False,
+    save_tdigest=False,
+    tdigest_path=None,
+):
+    """
+    CPU-only equivalent of geneformer.emb_extractor.get_embs.
+
+    `model` must have been loaded with output_hidden_states=True
+    (e.g. pu.load_model(..., mode="eval")).
+    """
+    from tqdm.auto import trange
+    if token_gene_dict is None:
+        raise ValueError("token_gene_dict is required.")
+
+    model = model.to("cpu")
+    model.eval()
+    device = torch.device("cpu")
+
+    model_input_size = pu.get_model_input_size(model)
+    total_batch_length = len(filtered_input_data)
+
+    if summary_stat is None:
+        embs_list = []
+    else:
+        emb_dims = pu.get_model_emb_dims(model)
+
+        if emb_mode == "cell":
+            embs_tdigests = [TDigest() for _ in range(emb_dims)]
+        elif emb_mode == "gene":
+            gene_set = {
+                token
+                for cell_tokens in filtered_input_data["input_ids"]
+                for token in cell_tokens
+            }
+            embs_tdigests_dict = {
+                token: [TDigest() for _ in range(emb_dims)]
+                for token in gene_set
+            }
+
+    cls_present = any("<cls>" in value for value in token_gene_dict.values())
+    eos_present = any("<eos>" in value for value in token_gene_dict.values())
+
+    if emb_mode == "cls":
+        if not cls_present:
+            raise ValueError("<cls> token missing in token dictionary.")
+
+        gene_token_dict = {gene: token for token, gene in token_gene_dict.items()}
+        cls_token_id = gene_token_dict["<cls>"]
+        if filtered_input_data["input_ids"][0][0] != cls_token_id:
+            raise ValueError("First token is not the <cls> token.")
+
+    overall_max_len = 0
+
+    for i in trange(
+        0,
+        total_batch_length,
+        forward_batch_size,
+        leave=not silent,
+    ):
+        max_range = min(i + forward_batch_size, total_batch_length)
+        minibatch = filtered_input_data.select(range(i, max_range))
+
+        max_len = int(max(minibatch["length"]))
+        original_lens = torch.tensor(
+            minibatch["length"],
+            dtype=torch.long,
+            device=device,
+        )
+        
+        input_ids_list = [
+            torch.as_tensor(row, dtype=torch.long) for row in minibatch["input_ids"]
+        ]
+        input_data_minibatch = pu.pad_tensor_list(
+            input_ids_list,
+            max_len,
+            pad_token_id,
+            model_input_size,
+        ).to(device)
+
+        #minibatch.set_format(type="torch")
+        #input_data_minibatch = pu.pad_tensor_list(
+        #    minibatch["input_ids"],
+        #    max_len,
+        #    pad_token_id,
+        #    model_input_size,
+        #).to(device)
+
+        attention_mask = (
+            torch.arange(max_len, device=device).unsqueeze(0)
+            < original_lens.unsqueeze(1)
+        ).long()
+
+        with torch.no_grad():
+            outputs = model(
+                input_ids=input_data_minibatch,
+                attention_mask=attention_mask,
+            )
+
+        embs_i = outputs.hidden_states[layer_to_quant]
+
+        if emb_mode == "cell":
+            if cls_present:
+                non_cls_embs = embs_i[:, 1:, :]
+                lengths_without_special_tokens = original_lens - (
+                    2 if eos_present else 1
+                )
+                mean_embs = pu.mean_nonpadding_embs(
+                    non_cls_embs,
+                    lengths_without_special_tokens,
+                )
+            else:
+                mean_embs = pu.mean_nonpadding_embs(embs_i, original_lens)
+
+            if summary_stat is None:
+                embs_list.append(mean_embs)
+            else:
+                accumulate_tdigests(embs_tdigests, mean_embs, emb_dims)
+
+        elif emb_mode == "gene":
+            if summary_stat is None:
+                embs_list.append(embs_i)
+            else:
+                for h in range(len(minibatch)):
+                    length_h = minibatch[h]["length"]
+                    input_ids_h = minibatch[h]["input_ids"][:length_h]
+
+                    if embs_i.dim() != 3:
+                        raise ValueError(
+                            f"Embedding tensor should be 3D, got {embs_i.dim()}D."
+                        )
+
+                    embs_h = embs_i[h, :, :].unsqueeze(dim=1)
+                    gene_embs_h = dict(zip(input_ids_h, embs_h))
+
+                    for token, token_emb in gene_embs_h.items():
+                        accumulate_tdigests(
+                            embs_tdigests_dict[int(token)],
+                            token_emb,
+                            emb_dims,
+                        )
+
+        elif emb_mode == "cls":
+            embs_list.append(embs_i[:, 0, :].clone().detach())
+
+        else:
+            raise ValueError("emb_mode must be one of: 'cell', 'gene', 'cls'.")
+
+        overall_max_len = max(overall_max_len, max_len)
+
+        del outputs, embs_i, input_data_minibatch, attention_mask
+
+    if summary_stat is None:
+        if emb_mode in {"cell", "cls"}:
+            return torch.cat(embs_list, dim=0)
+
+        return pu.pad_tensor_list(
+            embs_list,
+            overall_max_len,
+            pad_token_id,
+            model_input_size,
+            1,
+            pu.pad_3d_tensor,
+        )
+
+    if emb_mode == "cell":
+        if save_tdigest:
+            with open(tdigest_path, "wb") as fp:
+                pickle.dump(embs_tdigests, fp)
+
+        if summary_stat == "mean":
+            return torch.tensor(tdigest_mean(embs_tdigests, emb_dims))
+        if summary_stat == "median":
+            return torch.tensor(tdigest_median(embs_tdigests, emb_dims))
+
+    if emb_mode == "gene":
+        if save_tdigest:
+            with open(tdigest_path, "wb") as fp:
+                pickle.dump(embs_tdigests_dict, fp)
+
+        if summary_stat == "mean":
+            for gene in embs_tdigests_dict:
+                update_tdigest_dict_mean(embs_tdigests_dict, gene, emb_dims)
+        elif summary_stat == "median":
+            for gene in embs_tdigests_dict:
+                update_tdigest_dict_median(embs_tdigests_dict, gene, emb_dims)
+        else:
+            raise ValueError("summary_stat must be 'mean' or 'median'.")
+
+        return embs_tdigests_dict
+
+    raise ValueError("summary_stat must be 'mean' or 'median'.")
