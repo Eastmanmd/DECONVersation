@@ -97,51 +97,6 @@ from sklearn.decomposition import PCA
 def extract_embs(
     bulk_df,
     mode,
-    temp_output_dir, 
-    model_path,
-    delete_temp_files = False
-):
-    # Create a dedicated temp subfolder to avoid touching any existing user files
-    safe_temp_dir = os.path.join(temp_output_dir, "temp")
-    os.makedirs(safe_temp_dir, exist_ok=True)
-
-    if mode == "geneformer":
-        emb = get_embedding_gf(
-            bulk_df = bulk_df,
-            token_output_dir = safe_temp_dir,
-            token_output_name = "gf_tokens",
-            geneformer_model_path = model_path,
-            delete_temp_files = delete_temp_files
-        )
-    elif mode == "c2s":
-        emb = get_embedding_c2s(
-            bulk_df = bulk_df,
-            c2s_save_dir = safe_temp_dir,
-            c2s_save_name = "c2s_object",
-            model_path = model_path,
-            model_save_dir = safe_temp_dir,
-            model_save_name = "c2s_model",
-            delete_temp_files = delete_temp_files)
-    elif mode == "cellhermes":
-        emb = get_embedding_ch(
-            bulk_df = bulk_df,
-            model_path = model_path)
-    elif mode == "scgpt":
-        emb = get_embedding_scgpt(
-            bulk_df = bulk_df,
-            model_path = model_path)
-    elif mode == "scvi":
-        emb = get_embedding_scvi(
-            bulk_df = bulk_df,
-            model_path = model_path)
-    else:
-        raise ValueError("mode must be 'geneformer', 'c2s', 'cellhermes', 'scgpt' or 'scvi' ")
-        
-    return emb
-
-def extract_embs(
-    bulk_df,
-    mode,
     temp_output_dir,
     model_path,
     delete_temp_files=False,
