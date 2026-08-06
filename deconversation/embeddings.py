@@ -139,6 +139,89 @@ def extract_embs(
         
     return emb
 
+def extract_embs(
+    bulk_df,
+    mode,
+    temp_output_dir,
+    model_path,
+    delete_temp_files=False,
+    
+    # Geneformer only 
+    layer_to_quant=18,  # Default layer is last layer
+    token_output_name="gf_tokens",
+
+    # Cell2Sentence only
+    c2s_save_name="c2s_object",
+    model_save_name="c2s_model",
+    transpose=False,
+    gene_name_rm=r"\..+",
+    use_genes=None,
+    gene_name=None,
+    reorder_obs_name=False,
+    n_genes=200,
+    log=False,
+    log_path=None,
+    gene_median_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/gene_median_dictionary_gc95M.pkl",
+    token_dictionary_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/token_dictionary_gc95M.pkl",
+    gene_mapping_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/ensembl_mapping_dict_gc95M.pkl",
+):
+    
+    # Create a dedicated temp subfolder to avoid touching any existing user files
+    safe_temp_dir = os.path.join(temp_output_dir, "temp")
+    os.makedirs(safe_temp_dir, exist_ok=True)
+
+    # Geneformer 
+    if mode == "geneformer":
+        emb = get_embedding_gf(
+            bulk_df=bulk_df,
+            token_output_dir=safe_temp_dir,
+            token_output_name=token_output_name,
+            geneformer_model_path=model_path,
+            delete_temp_files=delete_temp_files,
+            gene_median_file=gene_median_file,
+            token_dictionary_file=token_dictionary_file,
+            gene_mapping_file=gene_mapping_file,
+            layer_to_quant=layer_to_quant,
+        )
+        
+    # Cell2Sentence 
+    elif mode == "c2s":
+        emb = get_embedding_c2s(
+            bulk_df=bulk_df,
+            c2s_save_dir=safe_temp_dir,
+            c2s_save_name=c2s_save_name,
+            model_path=model_path,
+            model_save_dir=safe_temp_dir,
+            model_save_name=model_save_name,
+            delete_temp_files=delete_temp_files,
+            transpose=transpose,
+            gene_name_rm=gene_name_rm,
+            use_genes=use_genes,
+            gene_name=gene_name,
+            reorder_obs_name=reorder_obs_name,
+            n_genes=n_genes,
+            log=log,
+            log_path=log_path,
+        )
+        
+    # Cell Hermes
+    elif mode == "cellhermes":
+        emb = get_embedding_ch(bulk_df=bulk_df, model_path=model_path)
+
+    # scGPT
+    elif mode == "scgpt":
+        emb = get_embedding_scgpt(bulk_df=bulk_df, model_path=model_path)
+        
+    #  scVI
+    elif mode == "scvi":
+        emb = get_embedding_scvi(bulk_df=bulk_df, model_path=model_path)
+        
+    #  Only supports Geneformer, c2s, cellhermes, scgpt and scVI 
+    else:
+        raise ValueError("mode must be 'geneformer', 'c2s', 'cellhermes', 'scgpt' or 'scvi' ")
+
+    return emb
+
 
 # ----------------------
 # Extract Components 
@@ -172,8 +255,8 @@ def get_embedding_gf(
     geneformer_model_path,
     gene_median_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/gene_median_dictionary_gc95M.pkl",
     token_dictionary_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/token_dictionary_gc95M.pkl",
-    gene_mapping_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/ensembl_mapping_dict_gc95M.pkl" 
-    
+    gene_mapping_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/ensembl_mapping_dict_gc95M.pkl",
+    layer_to_quant=18,
 ):
 
     """
@@ -197,133 +280,105 @@ def get_embedding_gf(
         Path to pretrained Geneformer model directory.
     """
 
-    #print("Loading pseudobulk CSV...")  # Add code to ensure that the colnames are ensemble IDs
-    #bulk_df = pd.read_csv(input_csv, index_col=0)
+    # Check dependencies 
+    if TranscriptomeTokenizer is None or pu is None or get_embs is None:
+        raise ImportError("Geneformer dependencies are not available.")
 
-    # Ensure column names are Ensembl IDs
+    # Ensure ensembl IDs are provided 
     if not all(col.startswith("ENSG") for col in bulk_df.columns):
         raise ValueError(
             "Input CSV columns must be Ensembl gene IDs (e.g., ENSG00000123456). "
             "Detected non-Ensembl column names."
         )
 
-    # -----------------------------
-    # Convert to AnnData
-    # -----------------------------
+    # Convert bulk data to anndata
     pb_adata = sc.AnnData(bulk_df)
-    pb_adata.obs["cell_type"] = "unknown" 
+    pb_adata.obs["cell_type"] = "unknown"
     pb_adata.obs["n_counts"] = np.sum(pb_adata.X, axis=1).tolist()
     pb_adata.var["ensembl_id"] = pb_adata.var_names
     pb_adata.X = sp.csc_matrix(pb_adata.X)
 
-    # Save temporary .h5ad
     out_adata_path = os.path.join(token_output_dir, f"{token_output_name}.h5ad")
     os.makedirs(token_output_dir, exist_ok=True)
     pb_adata.write_h5ad(out_adata_path)
 
     print(f"Pseudobulk AnnData saved to: {out_adata_path}")
 
-    # -----------------------------
-    # Tokenization 
-    # -----------------------------
+    # Tokenize data
     print("Starting Geneformer tokenization...")
 
     tk = TranscriptomeTokenizer(
         {"cell_type": "cell_type"},
-        model_input_size = 4096,
-        special_token = True,
-        chunk_size = 512,
-        gene_median_file = gene_median_file,
-        token_dictionary_file = token_dictionary_file,
-        gene_mapping_file = gene_mapping_file
+        model_input_size=4096,
+        special_token=True,
+        chunk_size=512,
+        gene_median_file=gene_median_file,
+        token_dictionary_file=token_dictionary_file,
+        gene_mapping_file=gene_mapping_file,
     )
 
     tk.tokenize_data(
         os.path.dirname(out_adata_path),
         token_output_dir,
         token_output_name,
-        file_format="h5ad"
+        file_format="h5ad",
     )
 
-    # -----------------------------
-    # Load  model
-    # -----------------------------
+    # Load geneformer model  and extract embeddings 
     print("Loading Geneformer model...")
     model = pu.load_model(
-        model_type = "Pretrained",
-        num_classes = 0,
-        model_directory = geneformer_model_path,
-        mode="eval"
+        model_type="Pretrained",
+        num_classes=0,
+        model_directory=geneformer_model_path,
+        mode="eval",
     )
 
     with open(token_dictionary_file, "rb") as f:
         gene_token_dict = pickle.load(f)
-        
+
     token_gene_dict = {v: k for k, v in gene_token_dict.items()}
     pad_token_id = gene_token_dict.get("<pad>")
 
-    # -----------------------------
-    # Load tokenized dataset
-    # -----------------------------
     print("Loading tokenized dataset...")
-    
+
     filtered_input_data = pu.load_and_filter(
         filter_data=None,
         nproc=1,
-        input_data_file=f"{token_output_dir}/{token_output_name}.dataset/"
+        input_data_file=f"{token_output_dir}/{token_output_name}.dataset/",
     )
 
-    # -----------------------------
-    # Extract embeddings
-    # -----------------------------
-    
     print("Extracting Geneformer embeddings...")
-    if torch.cuda.is_available():
-        state_embs_dict = get_embs(
-            model,
-            filtered_input_data,
-            emb_mode="cell",
-            layer_to_quant=17,
-            pad_token_id=pad_token_id,
-            token_gene_dict=token_gene_dict,
-            special_token=True,
-            forward_batch_size=50
-        )
-    else:
-        state_embs_dict = get_embs_cpu(
-            model,
-            filtered_input_data,
-            emb_mode="cell",
-            layer_to_quant=17,
-            pad_token_id=pad_token_id,
-            token_gene_dict=token_gene_dict,
-            special_token=True,
-            forward_batch_size=5
+    state_embs_dict = get_embs(
+        model,
+        filtered_input_data,
+        emb_mode="cell",
+        layer_to_quant=layer_to_quant,
+        pad_token_id=pad_token_id,
+        token_gene_dict=token_gene_dict,
+        special_token=True,
+        forward_batch_size=50,
     )
 
-    # Return embeddings as dataframe
+    # Convert embeddings to dataframe
     embeddings_df = pd.DataFrame(state_embs_dict.cpu().numpy())
     embeddings_df.index = bulk_df.index
-
-    # Add "GF" to the embedding names (column names)
     embeddings_df.columns = "GF_" + embeddings_df.columns.astype(str)
 
-    # -----------------------------
-    # Delete temp files
-    # -----------------------------
+    # Delete intermediate files if prompted 
     if delete_temp_files:
         for filename in os.listdir(token_output_dir):
             file_path = os.path.join(token_output_dir, filename)
-            
+
             if os.path.isfile(file_path) or os.path.islink(file_path):
                 os.remove(file_path)
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
 
-        # Remove temp folder itself
         shutil.rmtree(token_output_dir, ignore_errors=True)
 
     return embeddings_df
+
+
 
 
 # --------------------------------
@@ -386,9 +441,7 @@ def get_embedding_c2s(
         DataFrame of embeddings indexed by sample name.
     """
 
-    # -----------------------------
     # Logging setup
-    # -----------------------------
     if log:
     
         if log_path is None:
@@ -413,9 +466,7 @@ def get_embedding_c2s(
     
         tracemalloc.start()
 
-    # -----------------------------
     # Load data
-    # -----------------------------
     if transpose:
         bulk_df = bulk_df.T
 
@@ -430,9 +481,7 @@ def get_embedding_c2s(
 
     bulk_df = bulk_df.loc[:, ~bulk_df.columns.duplicated()]
 
-    # -----------------------------
     # Convert to AnnData
-    # -----------------------------
     adata = sc.AnnData(bulk_df)
 
     if gene_name is not None:
@@ -447,9 +496,8 @@ def get_embedding_c2s(
 
     label_cols = ["organism", "cell_type", "tissue", "sex", "batch_condition"]
 
-    # -----------------------------
+    
     # Create CSData object
-    # -----------------------------
     if log:
         logger.info("Preparing CSData object")
 
@@ -468,18 +516,14 @@ def get_embedding_c2s(
         dataset_backend="arrow",
     )
 
-    # -----------------------------
     # Load Model
-    # -----------------------------
     csmodel = cs.CSModel(
         model_name_or_path=model_path,
         save_dir=model_save_dir,
         save_name=model_save_name,
     )
 
-    # -----------------------------
     # Extract Embeddings
-    # -----------------------------
     if log:
         logger.info("Extracting embeddings")
 
@@ -513,9 +557,7 @@ def get_embedding_c2s(
 
         logger.info("Pipeline complete")
 
-    # -----------------------------
     # Delete temp files
-    # -----------------------------
     if delete_temp_files:
         for filename in os.listdir(c2s_save_dir):
             file_path = os.path.join(c2s_save_dir, filename)
@@ -526,16 +568,6 @@ def get_embedding_c2s(
                 shutil.rmtree(file_path)
                 
         shutil.rmtree(c2s_save_dir, ignore_errors=True)
-
-    # For saved model directory 
-    # if delete_temp_files:
-    #     for filename in os.listdir(model_save_dir):
-    #         file_path = os.path.join(model_save_dir, filename)
-            
-    #         if os.path.isfile(file_path) or os.path.islink(file_path):
-    #             os.remove(file_path)
-    #         elif os.path.isdir(file_path):
-    #             shutil.rmtree(file_path)
 
     return embeddings_df
 
@@ -602,6 +634,9 @@ def get_embedding_ch(
     embeddings_df.index = bulk_df.index
     return embeddings_df
 
+# -----------------------------
+# Extract cellHermes embeddings 
+# -----------------------------
 def ch_process_args(
     model,
     tokenizer,
@@ -740,7 +775,7 @@ def get_embedding_scvi(
     return embeddings_df
 
 # --------------------------------
-# Extract scVI embeddings
+# Extract PCA components
 # --------------------------------
 def get_embedding_pca(bulk_df, 
                       sig_mat, 
@@ -783,6 +818,9 @@ def get_embedding_pca(bulk_df,
         "sig_pca": sig_pca
     }
 
+# ----------------------------------------
+# Extract Geneformer embeddings (CPU)
+# ----------------------------------------
 def get_embs_cpu(
     model,
     filtered_input_data,
