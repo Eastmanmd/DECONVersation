@@ -1,6 +1,6 @@
 # Changelog
 ## [0.0.2]
-- added `deconverse` wrapper function
+- added `deconverse` wrapper function and cli
 - added fine-tuning (c2s, gf) functions
 - tweaked and added solvers
 - support geneformer embedding on cpu

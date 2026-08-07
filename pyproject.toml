@@ -40,6 +40,8 @@ build-backend = "setuptools.build_meta"
 [project.urls]
 Homepage = "https://github.com/Eastmanmd/DECONVersation"
 Issues = "https://github.com/Eastmanmd/DECONVersation/issues"
+[project.scripts]
+deconverse = "deconversation.cli:main"
 # Optional model are not listed as extras, since installation is non-trivial;
 # geneformer, cell2sentence, scgpt, cellhermes (llamafactory), scvi-tools
 # see README and corresponding repositories

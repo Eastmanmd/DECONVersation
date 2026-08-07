@@ -81,8 +81,8 @@ Parameters
         bulk_df = sig_mat,
         mode = mode,
         model_path= model,
-        temp_output_dir = temp_output_dir,
-        delete_temp_files = True
+        temp_output_dir = temp_output_dir + "/sig",
+        delete_temp_files = False
     )
     sig_mat_embed.to_csv(temp_output_dir + "/signature_embedding.csv")
 
@@ -90,8 +90,8 @@ Parameters
         bulk_df = bulk_df,
         mode = mode,
         model_path= model,
-        temp_output_dir = temp_output_dir,
-        delete_temp_files = True
+        temp_output_dir = temp_output_dir + "/bulk",
+        delete_temp_files = False
     )
     bulk_embed.to_csv(temp_output_dir + "/bulk_embedding.csv")
     
