@@ -83,6 +83,22 @@ While DECONVersation itself is lightweight and easy to install with `pip install
 
 ---
 
+## Quick start
+```
+# command line
+deconverse --bulk bulk_rna.csv --sig signature_matrix.csv --model path_to/Geneformer-V2-316M -o deconv_results.csv
+
+# python
+import deconversation
+res = deconversation.deconverse(
+    bulk_df = "bulk_rna.csv",
+    sig_df = "signature_matrix.csv",
+    model = "path_to/Geneformer-V2-316M",
+    temp_output_dir = "temp"
+)
+```
+---
+
 ## Tutorials
 
 - [DECONVersation on bulk RNA-seq using Geneformer](tutorials/extracting_embeddings_from_bulk.ipynb): Extract embeddings and deconvolute on bulk against a single cell reference.
