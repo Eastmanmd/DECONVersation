@@ -988,3 +988,21 @@ def get_embs_cpu(
         return embs_tdigests_dict
 
     raise ValueError("summary_stat must be 'mean' or 'median'.")
+
+def infer_model(path):
+    import json
+    model_type = "unknown"
+    if os.path.isfile(path + "/config.json"):
+        with open(path + "/config.json", "r") as file:
+            data = json.load(file)
+            if data["architectures"] == ['BertForMaskedLM']:
+                model_type = "geneformer"
+            elif data["architectures"] == ['GPTNeoXForCausalLM'] or data["architectures"] == ['Gemma2ForCausalLM']:
+                model_type = "c2s"
+            elif data["architectures"] == ["LlamaForCausalLM"]:
+                model_type = "cellhermes"
+    else:
+        with open(path + "/args.json", "r") as file:
+            data = json.load(file)
+            model_type = "scgpt"
+    return model_type

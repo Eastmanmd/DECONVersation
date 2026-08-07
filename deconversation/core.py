@@ -51,7 +51,8 @@ Parameters
     pd.DataFrame
         Estimated cell-type proportions (samples × cell types)
     """
-
+    if mode is None:
+        mode = embeddings.infer_model(model)
     # prep ref data
     # make ref signature matrix
     if sig_df is not None:
