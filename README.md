@@ -85,17 +85,19 @@ While DECONVersation itself is lightweight and easy to install with `pip install
 
 ## Quick start
 ```
-# command line
-deconverse --bulk bulk_rna.csv --sig signature_matrix.csv --model path_to/Geneformer-V2-316M -o deconv_results.csv
-
 # python
 import deconversation
 res = deconversation.deconverse(
     bulk_df = "bulk_rna.csv",
-    sig_df = "signature_matrix.csv",
+    sig_df = "signature_matrix.csv", # or adata = "reference.h5ad", needs one or the other
     model = "path_to/Geneformer-V2-316M",
     temp_output_dir = "temp"
 )
+
+# command line
+deconverse --help
+deconverse --bulk bulk_rna.csv --sig signature_matrix.csv --model path_to_model -o deconv_results.csv
+deconverse --bulk bulk_rna.csv --adata reference.h5ad --cell_type_col celltype --model path_to_model
 ```
 ---
 
