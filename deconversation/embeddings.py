@@ -303,17 +303,28 @@ def get_embedding_gf(
     )
 
     print("Extracting Geneformer embeddings...")
-    state_embs_dict = get_embs(
-        model,
-        filtered_input_data,
-        emb_mode="cell",
-        layer_to_quant=layer_to_quant,
-        pad_token_id=pad_token_id,
-        token_gene_dict=token_gene_dict,
-        special_token=True,
-        forward_batch_size=50,
-    )
-
+    if torch.cuda.is_available():
+        state_embs_dict = get_embs(
+            model,
+            filtered_input_data,
+            emb_mode="cell",
+            layer_to_quant=layer_to_quant,
+            pad_token_id=pad_token_id,
+            token_gene_dict=token_gene_dict,
+            special_token=True,
+            forward_batch_size=50,
+        )
+    else:
+        state_embs_dict = get_embs_cpu(
+            model,
+            filtered_input_data,
+            emb_mode="cell",
+            layer_to_quant=layer_to_quant,
+            pad_token_id=pad_token_id,
+            token_gene_dict=token_gene_dict,
+            special_token=True,
+            forward_batch_size=5
+        )
     # Convert embeddings to dataframe
     embeddings_df = pd.DataFrame(state_embs_dict.cpu().numpy())
     embeddings_df.index = bulk_df.index
