@@ -12,11 +12,13 @@ def build_parser():
         ),
     )
     parser.add_argument(
-        "--bulk",
+        "-b", "--bulk",
+        required=True,
         help="Path to bulk expression matrix CSV (rows: genes, columns: samples)",
     )
     parser.add_argument(
-        "--model",
+        "-m", "--model",
+        required=True,
         help="Path to zero-shot or fine-tuned scFM model",
     )
     parser.add_argument(
@@ -26,17 +28,17 @@ def build_parser():
         help="scFM model type (inferred from model path if omitted)",
     )
     parser.add_argument(
-        "--adata",
+        "-a", "--adata",
         default=None,
         help="Path to reference single-cell .h5ad object (required if --sig-df not given)",
     )
     parser.add_argument(
-        "--sig",
+        "-s", "--sig",
         default=None,
         help="Path to precomputed signature matrix CSV",
     )
     parser.add_argument(
-        "--temp-output-dir",
+        "-d", "--temp-output-dir",
         default="temp",
         help="Directory for saving intermediate files (default: temp)",
     )
@@ -44,6 +46,11 @@ def build_parser():
         "--cell-type-col",
         default="type",
         help="adata.obs column designating cell type (default: type)",
+    )
+    parser.add_argument(
+        "--sample-col",
+        default="sample",
+        help="adata.obs column designating sample or batch (default: sample)",
     )
     parser.add_argument(
         "--solver",
@@ -79,6 +86,7 @@ def main(argv=None):
             sig_df=args.sig,
             temp_output_dir=args.temp_output_dir,
             cell_type_col=args.cell_type_col,
+            sample_col=args.sample_col,
             solver=args.solver,
         )
     except Exception as e:

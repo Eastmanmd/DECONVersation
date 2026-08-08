@@ -208,9 +208,9 @@ def get_embedding_gf(
     token_output_name,
     delete_temp_files,
     geneformer_model_path,
-    gene_median_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/gene_median_dictionary_gc95M.pkl",
-    token_dictionary_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/token_dictionary_gc95M.pkl",
-    gene_mapping_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/ensembl_mapping_dict_gc95M.pkl",
+    gene_median_file,
+    token_dictionary_file,
+    gene_mapping_file,
     layer_to_quant=18,
 ):
 
@@ -257,7 +257,7 @@ def get_embedding_gf(
     os.makedirs(token_output_dir, exist_ok=True)
     pb_adata.write_h5ad(out_adata_path)
 
-    print(f"Pseudobulk AnnData saved to: {out_adata_path}")
+    print(f"Bulk AnnData saved to: {out_adata_path}")
 
     # Tokenize data
     print("Starting Geneformer tokenization...")
