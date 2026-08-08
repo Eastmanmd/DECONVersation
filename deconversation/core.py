@@ -67,12 +67,16 @@ Parameters
                                                         groupby = cell_type_col,
                                                         output_path = None)
         sig_mat.to_csv(temp_output_dir + "/signature.csv")
-    sig_mat = sig_mat.T
+    if mode == "geneformer" and ("ENS" not in sig_mat.index[0]):
+        print("Signature rows are not ENSG ids, converting...")
+        sig_mat.index = preprocessing.gene_id_name_map(gene_list=sig_mat.index, mode="to_ensembl" )
+    sig_mat = sig_mat.loc[sig_mat.index.dropna()].T
+    #sig_mat = sig_mat.T
 
     # load bulk query data
     bulk_df = pd.read_csv(bulk_df, index_col=0)
     if mode == "geneformer" and ("ENS" not in bulk_df.index[0]):
-        print("Rows are not ENSG ids, converting...")
+        print("Bulk data rows are not ENSG ids, converting...")
         bulk_df.index = preprocessing.gene_id_name_map(gene_list=bulk_df.index, mode="to_ensembl" )
     bulk_df = bulk_df.loc[bulk_df.index.dropna()].T
 
