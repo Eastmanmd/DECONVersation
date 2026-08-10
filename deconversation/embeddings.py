@@ -104,6 +104,9 @@ def extract_embs(
     # Geneformer only 
     layer_to_quant=18,  # Default layer is last layer
     token_output_name="gf_tokens",
+    gene_median_file=None,
+    token_dictionary_file=None,
+    gene_mapping_file=None,
 
     # Cell2Sentence only
     c2s_save_name="c2s_object",
@@ -116,9 +119,7 @@ def extract_embs(
     n_genes=200,
     log=False,
     log_path=None,
-    gene_median_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/gene_median_dictionary_gc95M.pkl",
-    token_dictionary_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/token_dictionary_gc95M.pkl",
-    gene_mapping_file="/gpfs/commons/groups/compbio/projects/rf_projects/rf_models/geneformer_pkl/ensembl_mapping_dict_gc95M.pkl",
+
 ):
     
     # Create a dedicated temp subfolder to avoid touching any existing user files
