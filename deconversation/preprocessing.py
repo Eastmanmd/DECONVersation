@@ -5,6 +5,7 @@ import pandas as pd
 import scanpy as sc
 import scipy.sparse as sp 
 import matplotlib.pyplot as plt
+from importlib.resources import files
 import anndata
 import warnings
 
@@ -136,7 +137,8 @@ def gene_id_name_map(
     """
 
     # Load dataframe with both ensembl and gene_symbols
-    gene_ids = pd.read_csv("/gpfs/commons/groups/compbio/projects/CZI_endom/RNA_temp/gene_names_gene_ids_czi_endo.csv", index_col=False)
+    gene_map_file = files("resources") / "gene_symbol_ensembl_id_map.csv"
+    gene_ids = pd.read_csv(gene_map_file)
 
     if mode == "to_ensembl":
         gene_list_mapped = symbol_to_ensembl(gene_ids, gene_list)
