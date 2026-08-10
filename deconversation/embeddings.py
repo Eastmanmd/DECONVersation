@@ -104,9 +104,7 @@ def extract_embs(
     # Geneformer only 
     layer_to_quant=18,  # Default layer is last layer
     token_output_name="gf_tokens",
-    gene_median_file=None,
-    token_dictionary_file=None,
-    gene_mapping_file=None,
+    model_version = "V2",
 
     # Cell2Sentence only
     c2s_save_name="c2s_object",
@@ -134,9 +132,7 @@ def extract_embs(
             token_output_name=token_output_name,
             geneformer_model_path=model_path,
             delete_temp_files=delete_temp_files,
-            gene_median_file=gene_median_file,
-            token_dictionary_file=token_dictionary_file,
-            gene_mapping_file=gene_mapping_file,
+            model_version = model_version,
             layer_to_quant=layer_to_quant,
         )
         
@@ -209,9 +205,7 @@ def get_embedding_gf(
     token_output_name,
     delete_temp_files,
     geneformer_model_path,
-    gene_median_file,
-    token_dictionary_file,
-    gene_mapping_file,
+    model_version="V2",
     layer_to_quant=18,
 ):
 
@@ -226,12 +220,6 @@ def get_embedding_gf(
         Directory to save tokenized outputs.  
     token_output_name : str
         Base name for tokenized dataset files.
-    gene_median_file : str
-        Path to gene median expression file (.pkl).
-    token_dictionary_file : str
-        Path to Geneformer token dictionary (.pkl).
-    gene_mapping_file : str
-        Path to Geneformer gene mapping file (.pkl).
     geneformer_model_path : str
         Path to pretrained Geneformer model directory.
     """
@@ -268,9 +256,7 @@ def get_embedding_gf(
         model_input_size=4096,
         special_token=True,
         chunk_size=512,
-        gene_median_file=gene_median_file,
-        token_dictionary_file=token_dictionary_file,
-        gene_mapping_file=gene_mapping_file,
+        model_version = model_version,
     )
 
     tk.tokenize_data(
@@ -280,6 +266,9 @@ def get_embedding_gf(
         file_format="h5ad",
     )
 
+    # Get token dictionary file
+    gene_token_dict = tk.gene_token_dict 
+
     # Load geneformer model  and extract embeddings 
     print("Loading Geneformer model...")
     model = pu.load_model(
@@ -288,9 +277,6 @@ def get_embedding_gf(
         model_directory=geneformer_model_path,
         mode="eval",
     )
-
-    with open(token_dictionary_file, "rb") as f:
-        gene_token_dict = pickle.load(f)
 
     token_gene_dict = {v: k for k, v in gene_token_dict.items()}
     pad_token_id = gene_token_dict.get("<pad>")
