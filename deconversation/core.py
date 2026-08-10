@@ -4,6 +4,8 @@ import scanpy as sc
 import warnings
 import logging
 import os
+from deconversation.resource_loader import load_example_csv
+
 os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
 os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
@@ -27,6 +29,7 @@ def deconverse(
     cell_type_col: str = "type",
     sample_col: str = "sample",
     solver: str = "nnls",
+    demo: bool = False,
 ) -> pd.DataFrame:
     """
     Extracting embeddings for bulk and ref signature data, then run NNLS-based and other methods for deconvolution
@@ -78,31 +81,42 @@ Parameters
     # prep ref data
     # make ref signature matrix
     #print("Prepping signature...")
-    if sig_df is not None:
-        sig_mat = pd.read_csv(sig_df, index_col=0)
+    if demo:
+        print("Running tiny demo example...")
+        sig_mat = load_example_csv("demo_sig_mat.csv")
     else:
-        if adata is None:
-            raise ValueError("adata and sig_df cannot both be empty")
-        adata = sc.read_h5ad(adata)
-        sig_mat = preprocessing.create_signature_matrix(adata = adata,
-                                                        sample_col = sample_col,
-                                                        cell_type_col = cell_type_col,
-                                                        groupby = cell_type_col,
-                                                        output_path = None)
-        sig_mat.to_csv(temp_output_dir + "/signature.csv")
+        if sig_df is not None:
+            sig_mat = pd.read_csv(sig_df, index_col=0)
+        else:
+            if adata is None:
+                raise ValueError("adata and sig_df cannot both be empty")
+            adata = sc.read_h5ad(adata)
+            sig_mat = preprocessing.create_signature_matrix(adata = adata,
+                                                            sample_col = sample_col,
+                                                            cell_type_col = cell_type_col,
+                                                            groupby = cell_type_col,
+                                                            output_path = None)
+            sig_mat.to_csv(temp_output_dir + "/signature.csv")
     if mode == "geneformer" and ("ENS" not in sig_mat.index[0]):
         print("Signature rows are not ENSG ids, converting...")
         sig_mat.index = preprocessing.gene_id_name_map(gene_list=sig_mat.index, mode="to_ensembl" )
     sig_mat = sig_mat.loc[sig_mat.index.dropna()].T
+    if sig_mat.shape[1] == 0:
+        print("No genes left in signature data, please check input.")
     #sig_mat = sig_mat.T
 
     # load bulk query data
     #print("Prepping bulk...")
-    bulk_df = pd.read_csv(bulk_df, index_col=0)
+    if demo:
+        bulk_df = load_example_csv("demo_bulk.csv")
+    else:
+        bulk_df = pd.read_csv(bulk_df, index_col=0)
     if mode == "geneformer" and ("ENS" not in bulk_df.index[0]):
         print("Bulk data rows are not ENSG ids, converting...")
         bulk_df.index = preprocessing.gene_id_name_map(gene_list=bulk_df.index, mode="to_ensembl" )
     bulk_df = bulk_df.loc[bulk_df.index.dropna()].T
+    if bulk_df.shape[1] == 0:
+        print("No genes left in bulk data, please check input.")
 
     # extract embeddings
     print("Extracting signature embedding...")

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from importlib.resources import files
 import anndata
 import warnings
-
+from deconversation.resource_loader import open_gene_name_mapping
 def load_and_prep_data(
     adata: ad.AnnData,
     mode: str,
@@ -137,9 +137,10 @@ def gene_id_name_map(
     """
 
     # Load dataframe with both ensembl and gene_symbols
-    gene_map_file = files("resources") / "gene_symbol_ensembl_id_map.csv"
-    gene_ids = pd.read_csv(gene_map_file)
-
+    #gene_map_file = files("resources") / "gene_symbol_ensembl_id_map.csv"
+    #gene_ids = pd.read_csv(gene_map_file)
+    with open_gene_name_mapping() as handle:
+        gene_ids = pd.read_csv(handle)
     if mode == "to_ensembl":
         gene_list_mapped = symbol_to_ensembl(gene_ids, gene_list)
 
@@ -265,4 +266,4 @@ def create_signature_matrix(
         print(f" Signature matrix saved to: {output_path}")
 
     return signature
-    
+

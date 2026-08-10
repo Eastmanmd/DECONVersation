@@ -13,7 +13,7 @@ def build_parser():
     )
     parser.add_argument(
         "-b", "--bulk",
-        required=True,
+        #required=True,
         help="Path to bulk expression matrix CSV (rows: genes, columns: samples)",
     )
     parser.add_argument(
@@ -64,6 +64,11 @@ def build_parser():
         help="Path to write output CSV of cell-type proportions "
              "(defaults to stdout as CSV if omitted)",
     )
+    parser.add_argument(
+        "--demo",
+        action="store_true",
+        help="Run with small demo data"
+    )
     return parser
 
 
@@ -71,23 +76,35 @@ def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    if args.adata is None and args.sig is None:
+    if args.adata is None and args.sig is None and not args.demo:
         parser.error("either --adata or --sig must be provided")
 
     os.makedirs(args.temp_output_dir, exist_ok=True)
-    
+    print("Importing foundation model packages...")    
     from .core import deconverse
+    
+    if args.demo:
+        demo = True
+        bulk_df = "demo"
+        adata = "demo"
+        sig_df = "demo"
+    else:
+        demo = False
+        bulk_df = args.bulk
+        adata=args.adata
+        sig_df=args.sig
     try:
         result = deconverse(
-            bulk_df=args.bulk,
+            bulk_df=bulk_df,
             model=args.model,
             mode=args.mode,
-            adata=args.adata,
-            sig_df=args.sig,
+            adata=adata,
+            sig_df=sig_df,
             temp_output_dir=args.temp_output_dir,
             cell_type_col=args.cell_type_col,
             sample_col=args.sample_col,
             solver=args.solver,
+            demo=demo
         )
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

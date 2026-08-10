@@ -30,10 +30,16 @@ dependencies = [
     "transformers",
     "peft",
     "tqdm",
+    "importlib-resources",
 ]
 [tool.setuptools.packages.find]
 include = ["deconversation"]
 namespaces = false
+[tool.setuptools.package-data]
+deconversation = [
+    "resources/*.csv",
+    "examples/*.csv"
+]
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"

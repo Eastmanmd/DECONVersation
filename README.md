@@ -96,6 +96,7 @@ res = deconversation.deconverse(
 
 # command line
 deconverse --help
+deconverse --demo --model path_to_model
 deconverse --bulk bulk_rna.csv --sig signature_matrix.csv --model path_to_model -o deconv_results.csv
 deconverse --bulk bulk_rna.csv --adata reference.h5ad --cell_type_col celltype --model path_to_model
 ```
