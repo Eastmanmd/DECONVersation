@@ -167,11 +167,12 @@ def gd_decompose(
     references,
     mixture,
     n_iter=1000,
-    lr=0.005,
+    lr=0.05,
     loss="cosine",        # "mse" or "cosine"
     regularization=None,  # None, "l1", or "entropy"
     lam=0.01,
     sum_to_one=True,
+    tol=1e-6, patience=10
 ):  
     references = F.normalize(torch.tensor(references.T, dtype=torch.float32), dim=-1)
     references = torch.tensor(references, dtype=torch.float32)
@@ -186,9 +187,15 @@ def gd_decompose(
     n_sources = references.shape[0]
 
     # Initialize weights
-    w = torch.zeros(n_batch, n_sources, requires_grad=True)
-    optimizer = torch.optim.Adam([w], lr=lr)
-
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    references = references.to(device)
+    mixture = mixture.to(device)
+    w = torch.zeros(n_batch, n_sources, requires_grad=True, device=device)
+    #w = torch.zeros(n_batch, n_sources, requires_grad=True)
+    #optimizer = torch.optim.Adam([w], lr=lr)
+    optimizer = torch.optim.Adam([w], lr=0.05)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_iter) 
+    prev_loss = float("inf")
     for i in range(n_iter):
         optimizer.zero_grad()
         w_pos = F.softplus(w)
@@ -211,6 +218,12 @@ def gd_decompose(
 
         loss_val.backward()
         optimizer.step()
+        scheduler.step()
+
+        if i % patience == 0:
+            if abs(prev_loss - loss_val.item()) < 1e-6:
+                break
+            prev_loss = loss_val.item()
 
     with torch.no_grad():
         w_final = F.softplus(w)
@@ -424,8 +437,9 @@ def solve_dampened_wls_j(S: np.ndarray, B: np.ndarray,
                           gold_standard: np.ndarray, j: int) -> np.ndarray:
     multiplier = 1 * (2 ** (j - 1))
     sol = gold_standard
-
-    ws = (1.0 / (S @ sol)) ** 2          # weights from current solution's prediction
+    pred = S @ sol
+    pred = np.where(np.abs(pred) < 1e-6, np.sign(pred) * 1e-6 + 1e-6, pred)
+    ws = (1.0 / pred) ** 2          # weights from current solution's prediction
     ws_scaled = ws / ws.min()
     ws_dampened = ws_scaled.copy()
     ws_dampened[ws_scaled > multiplier] = multiplier   # cap only, no floor
@@ -441,7 +455,9 @@ def find_dampening_constant(S: np.ndarray, B: np.ndarray,
                              gold_standard: np.ndarray,
                              n_boot: int = 100) -> int:
     sol = gold_standard
-    ws = (1.0 / (S @ sol)) ** 2
+    pred = S @ sol
+    pred = np.where(np.abs(pred) < 1e-6, np.sign(pred) * 1e-6 + 1e-6, pred)
+    ws = (1.0 / (pred)) ** 2
     ws_scaled = ws / ws.min()
 
     ws_scaled_finite = ws_scaled[np.isfinite(ws_scaled)]
