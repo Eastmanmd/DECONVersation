@@ -101,6 +101,9 @@ def run_deconv(
             coeffs, _ = nnls(X_aug, y_aug)
         
         elif solver == "dwls":
+            coeffs = solve_dampened_wls(X, y)
+
+        elif solver == "dwls_approx":
             coeffs, _ = nnls(X, y)  # initial fit
             for _ in range(4):
                 y_hat = X @ coeffs
@@ -141,7 +144,9 @@ def run_deconv(
         
         elif solver == "simplex_nnls":
             coeffs = simplex_nnls(X, y)
-        
+
+        elif solver == "centered_simplex":
+            coeffs = centered_simplex_deconvolution(X,y)
         #elif solver == "gradient_descent":
         #    coeffs = gd_decompose(X, y, loss="cosine", sum_to_one=True, regularization="l1", lam=0.01)
 
@@ -287,10 +292,10 @@ def run_all_deconv(
     # If none return all solvers 
     if solvers is None:
         solvers = [
-            "nnls", "nnls_mod", "dwls",
+            "nnls", "nnls_mod", "dwls", "dwls_approx",
             "simplex", "ridge_simplex", "dwls_simplex",
             "ridge", "elasticnet", "nusvr", "simplex_nnls",
-            "gradient_descent"
+            "gradient_descent","centered_simplex"
         ]
 
     # checks
@@ -377,3 +382,131 @@ def check_signature(signature_df: pd.DataFrame):
             signature_df.index[j],
         ),
     }
+
+def centered_simplex_deconvolution(
+    signature: np.ndarray,  # embedding dimensions x cell types
+    bulk: np.ndarray,       # embedding dimensions
+) -> np.ndarray:
+    n_cell_types = signature.shape[1]
+
+    centroid = signature.mean(axis=1)
+    signature_centered = signature - centroid[:, None]
+    bulk_centered = bulk - centroid
+
+    def objective(p: np.ndarray) -> float:
+        residual = bulk_centered - signature_centered @ p
+        return float(residual @ residual)
+
+    result = minimize(
+        objective,
+        x0=np.full(n_cell_types, 1.0 / n_cell_types),
+        method="SLSQP",
+        bounds=[(0.0, 1.0)] * n_cell_types,
+        constraints={
+            "type": "eq",
+            "fun": lambda p: p.sum() - 1.0,
+        },
+    )
+
+    if not result.success:
+        raise RuntimeError(
+            f"Simplex optimization failed: {result.message}"
+        )
+
+    return result.x
+
+def solve_ols_internal(S: np.ndarray, B: np.ndarray) -> np.ndarray:
+    solution, _ = nnls(S, B)
+    return solution
+
+
+def solve_dampened_wls_j(S: np.ndarray, B: np.ndarray,
+                          gold_standard: np.ndarray, j: int) -> np.ndarray:
+    multiplier = 1 * (2 ** (j - 1))
+    sol = gold_standard
+
+    ws = (1.0 / (S @ sol)) ** 2          # weights from current solution's prediction
+    ws_scaled = ws / ws.min()
+    ws_dampened = ws_scaled.copy()
+    ws_dampened[ws_scaled > multiplier] = multiplier   # cap only, no floor
+
+    sw = np.sqrt(ws_dampened)
+    # weighted NNLS via sqrt(w) reweighting — equivalent to the R solve.QP
+    # on D = S'WS, d = S'WB with w >= 0 constraint
+    solution, _ = nnls(S * sw[:, None], B * sw)
+    return solution
+
+
+def find_dampening_constant(S: np.ndarray, B: np.ndarray,
+                             gold_standard: np.ndarray,
+                             n_boot: int = 100) -> int:
+    sol = gold_standard
+    ws = (1.0 / (S @ sol)) ** 2
+    ws_scaled = ws / ws.min()
+
+    ws_scaled_finite = ws_scaled[np.isfinite(ws_scaled)]
+    if len(ws_scaled_finite) == 0 or ws_scaled_finite.max() <= 1:
+        return 1
+
+    n_genes = len(ws)
+    max_j = int(np.ceil(np.log2(ws_scaled_finite.max())))
+
+    mean_variance_per_j = []
+
+    for j in range(1, max_j + 1):
+        multiplier = 1 * (2 ** (j - 1))
+        ws_dampened = ws_scaled.copy()
+        ws_dampened[ws_scaled > multiplier] = multiplier
+
+        boot_solutions = []
+        rng_master = np.random.RandomState()  # reseeded per iter below, matches R's set.seed(i)
+        for seed in range(1, n_boot + 1):
+            rng = np.random.RandomState(seed)
+            subset = rng.choice(n_genes, size=int(n_genes * 0.5), replace=False)
+
+            # R: fit <- lm(B[subset] ~ -1 + S[subset,], weights = wsDampened[subset])
+            # unconstrained weighted least squares (intentionally NOT non-negative)
+            w_sub = ws_dampened[subset]
+            sw_sub = np.sqrt(w_sub)
+            Xw = S[subset] * sw_sub[:, None]
+            yw = B[subset] * sw_sub
+            coef, *_ = np.linalg.lstsq(Xw, yw, rcond=None)
+
+            coef_sum = coef.sum()
+            if coef_sum == 0:
+                continue  # avoid div by zero; R would produce NaN/Inf here too
+            scaled_sol = coef * gold_standard.sum() / coef_sum
+            boot_solutions.append(scaled_sol)
+
+        if len(boot_solutions) == 0:
+            mean_variance_per_j.append(np.inf)
+            continue
+
+        boot_solutions = np.array(boot_solutions)         # (n_boot, n_celltypes)
+        per_gene_sd = boot_solutions.std(axis=0, ddof=1)   # sd across bootstraps, per cell type
+        mean_variance_per_j.append(np.mean(per_gene_sd ** 2))
+
+    best_j = int(np.argmin(mean_variance_per_j)) + 1  # +1 since j starts at 1
+    return best_j
+
+
+def solve_dampened_wls(S: np.ndarray, B: np.ndarray,
+                        max_iter: int = 1000, tol: float = 0.01) -> np.ndarray:
+    solution = solve_ols_internal(S, B)
+
+    j = find_dampening_constant(S, B, solution)
+
+    change = 1.0
+    iterations = 0
+    while change > tol and iterations < max_iter:
+        new_solution = solve_dampened_wls_j(S, B, solution, j)
+
+        # R: solutionAverage <- rowMeans(cbind(newsolution, matrix(solution, ncol=4)))
+        # = (newsolution + 4*solution) / 5  -- heavy damping toward old solution
+        solution_avg = (new_solution + 4 * solution) / 5
+
+        change = np.linalg.norm(solution_avg - solution)
+        solution = solution_avg
+        iterations += 1
+
+    return solution / solution.sum()   # normalized to proportions, matches R output
