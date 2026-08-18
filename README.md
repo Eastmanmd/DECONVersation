@@ -19,10 +19,10 @@ config:
 flowchart
     subgraph ide1 [standard deconv]
     direction TB 
-    A[scRNA: cell x gene] --> B(full profile: type x gene)
-    A[scRNA: cell x gene] --> C(markers)
-    D[bulkRNA: sample x gene]
-    B --> F(signature: type x marker)
+    A[scRNA: gene x cell] --> B(full profile: gene x type)
+    A[scRNA: gene x cell] --> C(markers)
+    D[bulkRNA: gene x sample]
+    B --> F(signature: marker x type)
     C --> F
     F bb@==> E
     D db@==> E{{deconv res:
@@ -30,15 +30,26 @@ flowchart
     end
     subgraph ide2 [foundation model deconv]
     direction TB
-    A1[scRNA: cell x gene] --> B1(full profile: type x gene)
-    A1[scRNA: cell x gene] --> C1([fa:fa-robot fine-tuned model])
-    B1 --> F1(type x embeddings)
-    C1 --> F1
-    D1[bulkRNA: sample x gene] --> G1(sample x embeddings)
-    C1 --> G1
+    A1[scRNA: gene x cell] --> B1(full profile: gene x type)
+    C2([fa:fa-robot zero-shot model]) --> F1(embeddings x type)
+    C2 --> G1
+    B1 --> F1(embeddings x type)
+    D1[bulkRNA: gene x sample] --> G1(embeddings x sample)
     F1 f1b@==> E1{{deconv res:
     sample x type%}}
     G1 g1b@==> E1
+    end
+    subgraph ide2 [foundation model deconv]
+    direction TB
+    A3[scRNA: gene x cell] --> B3(full profile: gene x type)
+    A3[scRNA: gene x cell] --> C3([fa:fa-robot fine-tuned model])
+    B3 --> F3(embeddings x type)
+    C3 --> F3
+    D3[bulkRNA: gene x sample] --> G3(embeddings x sample)
+    C3 --> G3
+    F3 f1b@==> E3{{deconv res:
+    sample x type%}}
+    G3 g1b@==> E3
     end
 
 bb@{ curve: linear }
@@ -47,11 +58,15 @@ f1b@{ curve: linear }
 g1b@{ curve: linear }
 style A fill:green,color:#fff
 style A1 fill:green,color:#fff
+style A3 fill:green,color:#fff
 style D fill:blue,color:#fff
 style D1 fill:blue,color:#fff
-style C1 fill:red,color:#fff
+style D3 fill:blue,color:#fff
+style C2 fill:red,color:#fff
+style C3 fill:red,color:#fff
 style E stroke-width:4px
 style E1 stroke-width:4px
+style E3 stroke-width:4px
 ```
 
 ---
