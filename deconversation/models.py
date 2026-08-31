@@ -575,7 +575,14 @@ def train_c2s_cell_classifier_LoRA(
 
     # ---- MONKEY PATCH FOR LORA INTEGRATION ----
     original_from_pretrained = AutoModelForCausalLM.from_pretrained
-
+    from transformers import cache_utils
+    from transformers.models.gemma2 import modeling_gemma2
+    original_hybrid_init = cache_utils.HybridCache.__init__
+    def patched_hybrid_init(self, config, batch_size, max_cache_len, device, dtype=None, **kwargs):
+        original_hybrid_init(self, config, batch_size, max_cache_len, device, dtype=torch.bfloat16, **kwargs)
+    cache_utils.HybridCache.__init__ = patched_hybrid_init
+    modeling_gemma2.HybridCache.__init__ = patched_hybrid_init
+    
     def quantized_lora_from_pretrained(*args, **kwargs):
         # 1. Inject 4-bit Quantization Config
         bnb_config = BitsAndBytesConfig(
@@ -641,3 +648,5 @@ def train_c2s_cell_classifier_LoRA(
         top_k_genes=top_k_genes,
         max_eval_samples=max_eval_samples,
     )
+    cache_utils.HybridCache.__init__ = original_hybrid_init
+    modeling_gemma2.HybridCache.__init__ = original_hybrid_init
