@@ -595,14 +595,14 @@ def train_c2s_cell_classifier_LoRA(
         lora_config = LoraConfig(
             r=4,
             lora_alpha=8,
-            target_modules=["query_key_value", "dense"],
+            target_modules=["q_proj", "v_proj"],
             lora_dropout=0.05,
             bias="none",
             task_type="CAUSAL_LM"
         )
         model = get_peft_model(model, lora_config)
         
-        print("LoRA successfully applied to internal cell2sentence model!")
+        print("LoRA successfully applied to internal cell2sentence model")
         model.print_trainable_parameters()
         return model
 
