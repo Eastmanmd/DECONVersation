@@ -416,6 +416,7 @@ DEFAULT_TRAIN_ARGS_C2S = TrainingArguments(
     bf16=True,
     fp16=False,
     report_to="none",
+    prediction_loss_only=True,
     per_device_train_batch_size=4,
     per_device_eval_batch_size=4,
     gradient_accumulation_steps=2,
@@ -603,7 +604,9 @@ def train_c2s_cell_classifier_LoRA(
             task_type="CAUSAL_LM"
         )
         model = get_peft_model(model, lora_config)
-        
+        model.config.use_cache = False   
+        model.generation_config.use_cache = False
+
         print("LoRA successfully applied to internal cell2sentence model")
         model.print_trainable_parameters()
         return model
