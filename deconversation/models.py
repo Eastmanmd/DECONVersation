@@ -415,6 +415,7 @@ def train_geneformer_cell_classifier_LoRA(
 DEFAULT_TRAIN_ARGS_C2S = TrainingArguments(
     bf16=True,
     fp16=False,
+    report_to="none",
     per_device_train_batch_size=4,
     per_device_eval_batch_size=4,
     gradient_accumulation_steps=2,
@@ -580,16 +581,17 @@ def train_c2s_cell_classifier_LoRA(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.bfloat16,
-            bnb_4bit_use_double_quant=True
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_storage=torch.bfloat16
         )
         kwargs['quantization_config'] = bnb_config
         kwargs['device_map'] = 'auto'
-
+        kwargs['torch_dtype'] = torch.bfloat16
         # 2. Load the base model using original HF function
         model = original_from_pretrained(*args, **kwargs)
 
         # 3. Prepare for k-bit training (freeze base weights, handle layer norms)
-        model = prepare_model_for_kbit_training(model)
+        model = prepare_model_for_kbit_training(model,use_gradient_checkpointing=True,gradient_checkpointing_kwargs={"use_reentrant": False})
 
         # 4. Inject LoRA adapters
         lora_config = LoraConfig(
