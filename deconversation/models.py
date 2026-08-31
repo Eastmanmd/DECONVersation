@@ -517,7 +517,7 @@ def train_c2s_cell_classifier(
 # =====================================================
 #    LoRA Cell2Sentence Finetuning
 # =====================================================
-def train_geneformer_cell_classifier_LoRA(
+def train_c2s_cell_classifier_LoRA(
     adata,
     cell_type_col,
     model_path,
