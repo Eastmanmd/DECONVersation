@@ -396,6 +396,131 @@ def check_signature(signature_df: pd.DataFrame):
         ),
     }
 
+def linearity_diagnostics(bulk_embed_df, sig_embed_df, true_proportions_df):
+    """
+    Decompose the gap between an actual embedded mixture and the linear-mixing
+    prediction into a directional component (cosine similarity) and a radial
+    component (norm ratio), per pseudobulk sample.
+
+    z            = embed(pseudobulk_i)                     [actual embedded mixture]
+    linear_combo = sig_embed @ true_w_i                    [prediction if mixing were linear]
+
+    cosine_similarity : cos(z, linear_combo). 1.0 = same direction (no directional
+        distortion). This is the axis a cosine-similarity solver is blind to by
+        construction -- it cannot detect or correct deviations measured here.
+    radial_ratio : ||z|| / ||linear_combo||. 1.0 = no magnitude distortion. This is
+        the axis Euclidean solvers (NNLS, Ridge, etc.) are sensitive to but a
+        cosine-similarity solver deliberately ignores.
+
+    Parameters
+    ----------
+    bulk_embed_df : pd.DataFrame
+        Embedding dims (rows) x pseudobulk samples (columns). The actual embedded
+        pseudobulk mixtures, produced by the same embedding pipeline used elsewhere.
+    sig_embed_df : pd.DataFrame
+        Embedding dims (rows) x cell types (columns). Per-cell-type reference
+        embeddings, same embedding space/model as bulk_embed_df.
+    true_proportions_df : pd.DataFrame
+        Cell types (rows) x pseudobulk samples (columns). Known ground-truth mixing
+        weights, e.g. from pseudobulk.generate_pseudobulk. Row index must match
+        sig_embed_df's columns (cell type names); column labels must overlap with
+        bulk_embed_df's columns (sample names).
+
+    Returns
+    -------
+    pd.DataFrame indexed by sample, with columns:
+        'cosine_similarity', 'radial_ratio', 'log2_radial_ratio'
+    """
+    celltypes = sig_embed_df.columns
+    missing = celltypes.difference(true_proportions_df.index)
+    if len(missing) > 0:
+        raise ValueError(f"true_proportions_df is missing cell types present in "
+                          f"sig_embed_df: {list(missing)}")
+
+    true_w = true_proportions_df.loc[celltypes]  # reorder to match sig_embed_df's columns
+
+    samples = bulk_embed_df.columns.intersection(true_w.columns)
+    if len(samples) == 0:
+        raise ValueError("No overlapping sample names between bulk_embed_df and "
+                          "true_proportions_df.")
+
+    S = sig_embed_df.values  # (dims, n_celltypes)
+    rows = []
+    for s in samples:
+        z = bulk_embed_df[s].values          # (dims,)
+        w = true_w[s].values.astype(float)    # (n_celltypes,)
+        linear_combo = S @ w                  # (dims,)
+
+        z_norm = np.linalg.norm(z)
+        lc_norm = np.linalg.norm(linear_combo)
+
+        if z_norm < 1e-12 or lc_norm < 1e-12:
+            cos_sim, radial_ratio = np.nan, np.nan
+        else:
+            cos_sim = float(np.dot(z, linear_combo) / (z_norm * lc_norm))
+            radial_ratio = float(z_norm / lc_norm)
+
+        rows.append({
+            "sample": s,
+            "cosine_similarity": cos_sim,
+            "radial_ratio": radial_ratio,
+            "log2_radial_ratio": np.log2(radial_ratio) if radial_ratio and radial_ratio > 0 else np.nan,
+        })
+
+    return pd.DataFrame(rows).set_index("sample")
+
+
+def summarize_linearity(diag_df):
+    """
+    Print an interpretive summary of linearity_diagnostics() output, in the same
+    spirit as check_signature()'s printed diagnostics.
+    """
+    cos = diag_df["cosine_similarity"].dropna()
+    rad = diag_df["radial_ratio"].dropna()
+
+    print(f"Median directional alignment (cosine similarity): {cos.median():.4f}")
+    print("  1.0 = mixture embedding points in exactly the direction linear mixing predicts.")
+    print("  Values well below 1 indicate the encoder is rotating, not just rescaling,")
+    print("  the mixture embedding -- a distortion no cosine-similarity solver can correct,")
+    print("  since it only ever compares directions.\n")
+
+    print(f"Median radial ratio (||actual|| / ||linear prediction||): {rad.median():.4f}")
+    print("  1.0 = no magnitude distortion. Values far from 1 indicate scale distortion")
+    print("  that a cosine-similarity solver is specifically designed to be robust to,")
+    print("  but that Euclidean solvers (NNLS, Ridge, DWLS) are sensitive to.\n")
+
+    frac_poor = (cos < 0.9).mean() if len(cos) else float("nan")
+    print(f"Fraction of samples with cosine similarity < 0.9: {frac_poor:.1%}")
+    print("  Higher values here flag samples/mixtures where the linear-mixing")
+    print("  assumption is most strained -- worth cross-referencing against per-sample")
+    print("  deconvolution error to see whether accuracy degrades with directional distortion.")
+
+    return {
+        "median_cosine_similarity": float(cos.median()) if len(cos) else np.nan,
+        "median_radial_ratio": float(rad.median()) if len(rad) else np.nan,
+        "frac_cosine_below_0.9": frac_poor,
+    }
+
+
+def plot_linearity(diag_df, ax=None):
+    """
+    Scatter of directional vs. radial distortion, one point per pseudobulk sample.
+    Useful as a standalone supplementary figure, or pass a fitted `ax` to combine
+    with a second panel (e.g. distortion vs. per-sample deconvolution error).
+    """
+    import matplotlib.pyplot as plt
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(5, 4))
+
+    ax.scatter(diag_df["radial_ratio"], diag_df["cosine_similarity"], alpha=0.6, s=20)
+    ax.axvline(1.0, color="gray", linestyle="--", linewidth=0.8)
+    ax.axhline(1.0, color="gray", linestyle="--", linewidth=0.8)
+    ax.set_xlabel(r"radial ratio  $\|z\| / \|$linear combo$\|$")
+    ax.set_ylabel(r"cosine similarity  $\cos(z,\ $linear combo$)$")
+    ax.set_title("Linearity of mixing in embedding space")
+    return ax
+
 def centered_simplex_deconvolution(
     signature: np.ndarray,  # embedding dimensions x cell types
     bulk: np.ndarray,       # embedding dimensions
