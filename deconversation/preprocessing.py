@@ -5,7 +5,10 @@ import pandas as pd
 import scanpy as sc
 import scipy.sparse as sp 
 import matplotlib.pyplot as plt
-from importlib.resources import files
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 import anndata
 import warnings
 from deconversation.resource_loader import open_gene_name_mapping
