@@ -419,9 +419,9 @@ DEFAULT_TRAIN_ARGS_C2S = TrainingArguments(
     prediction_loss_only=True,
     per_device_train_batch_size=4,
     per_device_eval_batch_size=4,
-    gradient_accumulation_steps=2,
+    gradient_accumulation_steps=4,
     gradient_checkpointing=True,
-    learning_rate=1e-5,
+    learning_rate=2e-4,
     load_best_model_at_end=True,
     logging_steps=50,
     logging_strategy="steps",
@@ -629,9 +629,6 @@ def train_c2s_cell_classifier_LoRA(
         save_name=save_name,
     )
     
-    # Restore original function to avoid messing up global namespace
-    AutoModelForCausalLM.from_pretrained = original_from_pretrained
-
     # Resolve output dir
     training_task = "cell_type_prediction"
     datetimestamp = datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
@@ -648,5 +645,6 @@ def train_c2s_cell_classifier_LoRA(
         top_k_genes=top_k_genes,
         max_eval_samples=max_eval_samples,
     )
+    AutoModelForCausalLM.from_pretrained = original_from_pretrained
     cache_utils.HybridCache.__init__ = original_hybrid_init
     modeling_gemma2.HybridCache.__init__ = original_hybrid_init

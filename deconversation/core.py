@@ -30,6 +30,7 @@ def deconverse(
     sample_col: str = "sample",
     solver: str = "nnls",
     demo: bool = False,
+    transpose = False
 ) -> pd.DataFrame:
     """
     Extracting embeddings for bulk and ref signature data, then run NNLS-based and other methods for deconvolution
@@ -65,6 +66,9 @@ Parameters
 
     solver : str
         solvers currently supported: nnls, ridge, elasticnet, nusvr
+    
+    transpose : bool
+        if tables are in sample x gene format, will need to be transposed
 
     Returns
     -------
@@ -87,6 +91,8 @@ Parameters
     else:
         if sig_df is not None:
             sig_mat = pd.read_csv(sig_df, index_col=0)
+            if transpose:
+                sig_mat = sig_mat.T
         else:
             if adata is None:
                 raise ValueError("adata and sig_df cannot both be empty")
@@ -111,6 +117,8 @@ Parameters
         bulk_df = load_example_csv("demo_bulk.csv")
     else:
         bulk_df = pd.read_csv(bulk_df, index_col=0)
+        if transpose:
+            bulk_df = bulk_df.T
     if mode == "geneformer" and ("ENS" not in bulk_df.index[0]):
         print("Bulk data rows are not ENSG ids, converting...")
         bulk_df.index = preprocessing.gene_id_name_map(gene_list=bulk_df.index, mode="to_ensembl" )
