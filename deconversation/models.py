@@ -1,3 +1,4 @@
+from __future__ import annotations
 # ===============================
 # Standard Libraries
 # ===============================
@@ -49,13 +50,13 @@ except ImportError:
 # ===============================
 try:
     import cell2sentence as cs
-    print("Cell2Sentence successfully imported.")
+    print("cell2sentence successfully imported.")
     import torch
     from datasets import load_from_disk
     from transformers import BertForSequenceClassification, TrainingArguments, Trainer, AutoModelForCausalLM, BitsAndBytesConfig
     from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
 except ImportError:
-    print("Cell2Sentence is not installed. Skipping related functions.")
+    print("cell2sentence is not installed. Skipping related functions.")
 
 # ===============================
 # scGPT
@@ -73,7 +74,7 @@ try:
     from scgpt.preprocess import Preprocessor
     from scgpt import SubsetsBatchSampler
     from scgpt.utils import set_seed, category_str2int, eval_scib_metrics
-    print("scGPT successfully imported.")
+    print("scgpt successfully imported.")
     import copy
     import gc
     import json
@@ -110,7 +111,23 @@ try:
     os.environ["KMP_WARNINGS"] = "off"
     warnings.filterwarnings('ignore')
 except ImportError:
-    print("scGPT is not installed. Skipping related functions.")
+    print("scgpt is not installed. Skipping related functions.")
+
+# ===============================
+# CellHermes
+# ===============================
+try:
+    import json
+    import os
+    from typing import Any, Dict, List, Optional, Sequence, Tuple 
+    import numpy as np
+    import pandas as pd
+    import scipy.sparse as sp
+    from llamafactory.train.tuner import export_model
+    from llamafactory.train.tuner import run_exp
+    print("cellhermes successfully imported.")
+except ImportError:
+    print("cellhermes is not installed. Skipping related functions.")
 
 # =================================================
 #    Full Geneformer Finetuning
@@ -1672,3 +1689,270 @@ def train_scgpt_cell_classifier(
         str(save_dir / "confusion_matrix.png"),
         caption=f"confusion matrix",
     )
+
+def train_cellhermes_cell_classifier(
+    adata,
+    base_model: str,
+    output_name: str,
+    celltype_key: str = "celltype",
+    layer: Optional[str] = None,
+    n_genes: int = 500,
+    exclude_gene_regex: str = r"^MT-|^RPL[0-9]|^RPS[0-9]",
+    test_frac: float = 0.1,
+    random_state: int = 0,
+    instruction_text: Optional[str] = None,
+    cell_type_names: Optional[Sequence[str]] = None,
+    data_dir: str = "data",
+    dataset_subdir: str = "multitask_datasets",
+    output_dir: str = "saves",
+    template: str = "llama3",
+    cuda_visible_devices: Optional[str] = "0",
+    training_args: Optional[Dict[str, Any]] = None,
+    lora_args: Optional[Dict[str, Any]] = None,
+    export_args: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+ 
+    if cuda_visible_devices is not None:
+        os.environ["CUDA_VISIBLE_DEVICES"] = str(cuda_visible_devices)
+ 
+    # ---- Step 1: cells -> gene-ranked sentences ----
+    full_df = ch_build_gene_sentences(
+        adata=adata,
+        celltype_key=celltype_key,
+        layer=layer,
+        n_genes=n_genes,
+        exclude_gene_regex=exclude_gene_regex,
+        instruction_text=instruction_text,
+        cell_type_names=cell_type_names,
+    )
+    train_df, test_df = ch_split_train_test(
+        full_df, celltype_col="output", test_frac=test_frac, random_state=random_state
+    )
+ 
+    full_name = f"{output_name}_hermestrain.json"
+    train_name = f"Celltype_training_{output_name}.json"
+    test_name = f"Celltype_testing_{output_name}.json"
+ 
+    full_json = os.path.join(data_dir, dataset_subdir, full_name)
+    train_json = os.path.join(data_dir, dataset_subdir, train_name)
+    test_json = os.path.join(data_dir, dataset_subdir, test_name)
+ 
+    ch_write_alpaca_json(full_df, full_json)
+    ch_write_alpaca_json(train_df, train_json)
+    ch_write_alpaca_json(test_df, test_json)
+ 
+    # ---- Step 2: register the training set in dataset_info.json ----
+    dataset_name = f"Celltype_training_{output_name}"
+    dataset_info_path = os.path.join(data_dir, "dataset_info.json")
+    relative_train_path = os.path.join(dataset_subdir, train_name)
+    ch_update_dataset_info(dataset_info_path, dataset_name, relative_train_path)
+ 
+    # ---- Step 3: LoRA fine-tune via llamafactory.train.tuner.run_exp() ----
+    output_dir = os.path.join(output_dir, f"Multi_Task_{output_name}")
+    train_args = ch_build_train_args(
+        model_name_or_path=base_model,
+        dataset_name=dataset_name,
+        dataset_dir=data_dir,
+        output_dir=output_dir,
+        template=template,
+        training_args=training_args,
+        lora_args=lora_args,
+    )
+    run_exp(args=train_args)
+ 
+    # ---- Step 4: build the export/merge args dict ----
+    merged_model_dir = os.path.join(output_dir, f"CellHermes_ft_{output_name}_full_model")
+    export_args_dict = ch_build_export_args(
+        model_name_or_path=base_model,
+        adapter_name_or_path=output_dir,
+        template=template,
+        export_dir=merged_model_dir,
+        export_args=export_args,
+    )
+ 
+    # ---- Step 5: merge adapter into base model via export_model() ----
+    export_model(args=export_args_dict)
+ 
+    return {
+        "full_json": full_json,
+        "train_json": train_json,
+        "test_json": test_json,
+        "dataset_info_path": dataset_info_path,
+        "dataset_name": dataset_name,
+        "output_dir": output_dir,
+        "train_args": train_args,
+        "merged_model_dir": merged_model_dir,
+        "export_args": export_args_dict,
+    }
+
+def ch_top_n_gene_string(row_values: np.ndarray, gene_names: np.ndarray, n_genes: int) -> str:
+    """Return the top-n gene names for one cell, ranked by expression (desc),
+    formatted as "'GENE1','GENE2',...' to match the R `tokenize()` helper."""
+    n = row_values.shape[0]
+    k = min(n_genes, n)
+    if k <= 0:
+        return ""
+    if k < n:
+        top_idx = np.argpartition(row_values, -k)[-k:]
+    else:
+        top_idx = np.arange(n)
+    # sort just the top-k by value, descending
+    top_idx = top_idx[np.argsort(row_values[top_idx])[::-1]]
+    genes = gene_names[top_idx]
+    return ",".join(f"'{g}'" for g in genes)
+ 
+def ch_build_gene_sentences(
+    adata,
+    celltype_key: str,
+    layer: Optional[str],
+    n_genes: int,
+    exclude_gene_regex: str,
+    instruction_text: Optional[str],
+    cell_type_names: Optional[Sequence[str]],
+) -> pd.DataFrame:
+    """Build the full alpaca-format dataframe (instruction / input / output),
+    one row per cell"""
+ 
+    X = adata.layers[layer] if layer is not None else adata.X
+    gene_names = np.asarray(adata.var_names)
+    keep_mask = ~pd.Series(gene_names).str.contains(exclude_gene_regex, regex=True, na=False).to_numpy()
+    gene_names = gene_names[keep_mask]
+    X = X[:, keep_mask]
+ 
+    is_sparse = sp.issparse(X)
+    if is_sparse and not sp.isspmatrix_csr(X):
+        X = X.tocsr()
+ 
+    sentences: List[str] = []
+    for i in range(X.shape[0]):
+        row = X[i]
+        row = row.toarray().ravel() if is_sparse else np.asarray(row).ravel()
+        sentences.append(ch_top_n_gene_string(row, gene_names, n_genes))
+ 
+    if cell_type_names is None:
+        cell_type_names = sorted(adata.obs[celltype_key].astype(str).unique().tolist())
+    allowed_str = ", ".join(cell_type_names)
+ 
+    if instruction_text is None:
+        instruction_text = (
+            "Here is a cell with genes ranked by expression. From the "
+            f"{len(cell_type_names)} cell type names provided, please identify which one matches this cell."
+        )
+ 
+    full_df = pd.DataFrame(
+        {
+            "instruction": instruction_text,
+            "input": [
+                f"Gene list ranked by expression is: [{s}], "
+                f"You MUST return ONLY: {allowed_str}, and do not reply others."
+                for s in sentences
+            ],
+            "output": adata.obs[celltype_key].astype(str).to_numpy(),
+        }
+    )
+    return full_df
+ 
+ 
+def ch_split_train_test(
+    df: pd.DataFrame, celltype_col: str, test_frac: float, random_state: int
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Stratified train/test split by cell type, ~test_frac held out per group."""
+    test_df = df.groupby(celltype_col, group_keys=False).apply(
+        lambda g: g.sample(frac=test_frac, random_state=random_state)
+    )
+    train_df = df.drop(test_df.index)
+    return train_df.reset_index(drop=True), test_df.reset_index(drop=True)
+ 
+ 
+def ch_write_alpaca_json(df: pd.DataFrame, path: str) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(df.to_dict(orient="records"), f, indent=2)
+ 
+def ch_update_dataset_info(dataset_info_path: str, dataset_name: str, relative_file_path: str) -> Dict[str, Any]:
+    if os.path.exists(dataset_info_path):
+        with open(dataset_info_path) as f:
+            info = json.load(f)
+    else:
+        os.makedirs(os.path.dirname(dataset_info_path) or ".", exist_ok=True)
+        info = {}
+ 
+    info[dataset_name] = {
+        "file_name": relative_file_path,
+        "formatting": "alpaca",
+        "columns": {"prompt": "instruction", "query": "input", "response": "output"},
+    }
+    with open(dataset_info_path, "w") as f:
+        json.dump(info, f, indent=2)
+    return info
+ 
+def ch_build_train_args(
+    model_name_or_path: str,
+    dataset_name: str,
+    dataset_dir: str,
+    output_dir: str,
+    template: str,
+    training_args: Optional[Dict[str, Any]],
+    lora_args: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    args: Dict[str, Any] = {
+        "stage": "sft",
+        "do_train": True,
+        "model_name_or_path": model_name_or_path,
+        "preprocessing_num_workers": 16,
+        "finetuning_type": "lora",
+        "template": template,
+        "flash_attn": "auto",
+        "dataset_dir": dataset_dir,
+        "dataset": dataset_name,
+        "cutoff_len": 1024,
+        "learning_rate": 5e-05,
+        "num_train_epochs": 2.0,
+        "max_samples": 10000000,
+        "per_device_train_batch_size": 2,
+        "gradient_accumulation_steps": 4,
+        "lr_scheduler_type": "cosine",
+        "max_grad_norm": 1.0,
+        "logging_steps": 5,
+        "save_steps": 10000,
+        "warmup_steps": 0,
+        "optim": "adamw_torch",
+        "packing": False,
+        "report_to": "none",
+        "output_dir": output_dir,
+        "bf16": True,
+        "plot_loss": True,
+        "ddp_timeout": 180000000,
+        "include_num_input_tokens_seen": True,
+        "lora_rank": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0,
+        "lora_target": "all",
+    }
+    if training_args:
+        args.update(training_args)
+    if lora_args:
+        args.update(lora_args)
+    return args
+ 
+def ch_build_export_args(
+    model_name_or_path: str,
+    adapter_name_or_path: str,
+    template: str,
+    export_dir: str,
+    export_args: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    args = {
+        "model_name_or_path": model_name_or_path,
+        "adapter_name_or_path": adapter_name_or_path,
+        "template": template,
+        "finetuning_type": "lora",
+        "export_dir": export_dir,
+        "export_size": 2,
+        "export_device": "cpu",
+        "export_legacy_format": False,
+    }
+    if export_args:
+        args.update(export_args)
+    return args
+ 
