@@ -1,4 +1,7 @@
 # Changelog
+## [0.0.3]
+- added fine-tuning functions for scgpt
+
 ## [0.0.2]
 - added `deconverse` wrapper function and cli
 - added fine-tuning (c2s, gf) functions
