@@ -1,7 +1,7 @@
 # Changelog
 ## [0.0.3]
 - added fine-tuning functions for scgpt, cellhermes
-
+- added support for scvi deconvolution as comparison
 ## [0.0.2]
 - added `deconverse` wrapper function and cli
 - added fine-tuning (c2s, gf) functions

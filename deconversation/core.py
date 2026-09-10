@@ -57,7 +57,7 @@ Parameters
         - "c2s"
         - "cellhermes"
         - "scgpt"
-    
+        - "scvi" 
     sig_df : str
         path to signature matrix 
 
