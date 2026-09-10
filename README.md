@@ -130,3 +130,4 @@ deconverse --bulk bulk_rna.csv --adata reference.h5ad --cell_type_col celltype -
 - [CellHermes](https://www.biorxiv.org/content/10.1101/2025.11.07.687322v1) Language may be all omics needs: Harmonizing multimodal data for omics understanding with CellHermes
 - [scGPT](https://www.nature.com/articles/s41592-024-02201-0) scGPT: toward building a foundation model for single-cell multi-omics using generative AI
 ---
+<a href="https://www.flaticon.com/free-icons/robot" title="robot icons">Robot icons created by Hilmy Abiyyu A. - Flaticon</a>
