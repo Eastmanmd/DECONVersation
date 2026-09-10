@@ -498,7 +498,32 @@ try:
         per_device_eval_batch_size=4,
         gradient_accumulation_steps=4,
         gradient_checkpointing=True,
-        learning_rate=2e-4,
+        learning_rate=1e-5, # normal
+        load_best_model_at_end=True,
+        logging_steps=50,
+        logging_strategy="steps",
+        lr_scheduler_type="cosine",
+        num_train_epochs=10,
+        eval_steps=50,
+        eval_strategy="steps",
+        save_steps=100,
+        save_strategy="steps",
+        save_total_limit=3,
+        warmup_ratio=0.05,
+        output_dir="./tmp_output",  # overwritten at runtime
+        torch_empty_cache_steps=1,
+    )
+    
+    DEFAULT_TRAIN_ARGS_C2S_LORA = TrainingArguments(
+        bf16=True,
+        fp16=False,
+        report_to="none",
+        prediction_loss_only=True,
+        per_device_train_batch_size=4,
+        per_device_eval_batch_size=4,
+        gradient_accumulation_steps=4,
+        gradient_checkpointing=True,
+        learning_rate=2e-4, # for lora
         load_best_model_at_end=True,
         logging_steps=50,
         logging_strategy="steps",
@@ -616,11 +641,11 @@ def train_c2s_cell_classifier_LoRA(
 ):
     # Merge training args
     if train_args_override:
-        base = DEFAULT_TRAIN_ARGS_C2S.to_dict()
+        base = DEFAULT_TRAIN_ARGS_C2S_LORA.to_dict()
         base.update(train_args_override)
         train_args = TrainingArguments(**base)
     else:
-        train_args = DEFAULT_TRAIN_ARGS_C2S
+        train_args = DEFAULT_TRAIN_ARGS_C2S_LORA
 
     # Add Metadata
     adata.obs["organism"] = organism
