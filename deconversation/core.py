@@ -57,7 +57,9 @@ Parameters
         - "c2s"
         - "cellhermes"
         - "scgpt"
-        - "scvi" 
+        - "scvi"
+        - "raw"
+
     sig_df : str
         path to signature matrix 
 
@@ -131,24 +133,30 @@ Parameters
     # extract embeddings
     print("Extracting signature embedding...")
     with redirect_stdout(io.StringIO()):
-        sig_mat_embed = embeddings.extract_embs(
-            bulk_df = sig_mat,
-            mode = mode,
-            model_path= model,
-            temp_output_dir = temp_output_dir + "/sig",
-            delete_temp_files = False
-        )
-    sig_mat_embed.to_csv(temp_output_dir + "/signature_embedding.csv")
+        if mode == "raw":
+            sig_mat_embed = sig_mat
+        else:
+            sig_mat_embed = embeddings.extract_embs(
+                bulk_df = sig_mat,
+                mode = mode,
+                model_path= model,
+                temp_output_dir = temp_output_dir + "/sig",
+                delete_temp_files = False
+            )
+            sig_mat_embed.to_csv(temp_output_dir + "/signature_embedding.csv")
     print("Extracting bulk embedding...")
     with redirect_stdout(io.StringIO()):
-        bulk_embed = embeddings.extract_embs(
-            bulk_df = bulk_df,
-            mode = mode,
-            model_path= model,
-            temp_output_dir = temp_output_dir + "/bulk",
-            delete_temp_files = False
-        )
-    bulk_embed.to_csv(temp_output_dir + "/bulk_embedding.csv")
+        if mode == "raw":
+            bulk_embed = bulk_df
+        else:
+            bulk_embed = embeddings.extract_embs(
+                bulk_df = bulk_df,
+                mode = mode,
+                model_path= model,
+                temp_output_dir = temp_output_dir + "/bulk",
+                delete_temp_files = False
+            )
+            bulk_embed.to_csv(temp_output_dir + "/bulk_embedding.csv")
     
     # solve
     print("Solving deconvolution...")
