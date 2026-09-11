@@ -201,8 +201,10 @@ def load_results(folder_path, ground_truth_file):
             })
         results.append({
             'Model': model_name, 'CellType': 'Global',
-            'Correlation': df.corrwith(gt_df, axis=0).fillna(0).mean(),
-            'RMSE': np.sqrt(mean_squared_error(gt_df, df)),
+            #'Correlation': df.corrwith(gt_df, axis=0).fillna(0).nanmean(),
+            'Correlation' : np.corrcoef(gt_df.values.flatten(), df.values.flatten())[0, 1],
+            'RMSE': np.sqrt(mean_squared_error(gt_df, df))
+            #'RMSE': np.sqrt(np.mean((gt_df.values - df.values)** 2))
         })
     return pd.DataFrame(results)
 
