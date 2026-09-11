@@ -69,10 +69,10 @@ except ImportError:
 # ===============================
 try:
     import scgpt as scg
-    print("scGPT successfully imported.")
+    print("scgpt successfully imported.")
 
 except ImportError:
-    print("scGPT is not installed. Skipping related functions.")
+    print("scgpt is not installed. Skipping related functions.")
 
 
 # ===============================
@@ -80,10 +80,10 @@ except ImportError:
 # ===============================
 try:
     import scvi
-    print("scVI successfully imported.")
+    print("scvi successfully imported.")
 
 except ImportError:
-    print("scVI is not installed. Skipping related functions.")
+    print("scvi is not installed. Skipping related functions.")
 
 # ===============================
 # PCA
