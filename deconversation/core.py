@@ -58,6 +58,7 @@ Parameters
         - "cellhermes"
         - "scgpt"
         - "scvi"
+        - "pca"
         - "raw"
 
     sig_df : str
@@ -123,7 +124,7 @@ Parameters
         if transpose:
             bulk_df = bulk_df.T
     # convert to ensembl id if geneformer or scvi
-    if mode in {"geneformer", "scvi"} and ("ENS" not in sig_mat.index[0]):
+    if mode in {"geneformer", "scvi"} and ("ENS" not in bulk_df.index[0]):
         print("Bulk data rows are not ENSG ids, converting...")
         bulk_df.index = preprocessing.gene_id_name_map(gene_list=bulk_df.index, mode="to_ensembl" )
     bulk_df = bulk_df.loc[bulk_df.index.dropna()].T
@@ -131,31 +132,36 @@ Parameters
         print("No genes left in bulk data, please check input.")
 
     # extract embeddings
-    print("Extracting signature embedding...")
-    with redirect_stdout(io.StringIO()):
-        if mode == "raw":
-            sig_mat_embed = sig_mat
-        else:
-            sig_mat_embed = embeddings.extract_embs(
-                bulk_df = sig_mat,
-                mode = mode,
-                model_path= model,
-                temp_output_dir = temp_output_dir + "/sig",
-                delete_temp_files = False
-            )
-            sig_mat_embed.to_csv(temp_output_dir + "/signature_embedding.csv")
-    print("Extracting bulk embedding...")
-    with redirect_stdout(io.StringIO()):
-        if mode == "raw":
-            bulk_embed = bulk_df
-        else:
-            bulk_embed = embeddings.extract_embs(
-                bulk_df = bulk_df,
-                mode = mode,
-                model_path= model,
-                temp_output_dir = temp_output_dir + "/bulk",
-                delete_temp_files = False
-            )
+    if mode == "pca":
+        res = embeddings.get_embedding_pca(bulk_df, sig_mat)
+        bulk_embed = res["pca_bulk"]
+        sig_mat_embed = res["sig_pca"]
+    else:
+        print("Extracting signature embedding...")
+        with redirect_stdout(io.StringIO()):
+            if mode == "raw":
+                sig_mat_embed = sig_mat
+            else:
+                sig_mat_embed = embeddings.extract_embs(
+                    bulk_df = sig_mat,
+                    mode = mode,
+                    model_path= model,
+                    temp_output_dir = temp_output_dir + "/sig",
+                    delete_temp_files = False
+                )
+                sig_mat_embed.to_csv(temp_output_dir + "/signature_embedding.csv")
+        print("Extracting bulk embedding...")
+        with redirect_stdout(io.StringIO()):
+            if mode == "raw":
+                bulk_embed = bulk_df
+            else:
+                bulk_embed = embeddings.extract_embs(
+                    bulk_df = bulk_df,
+                    mode = mode,
+                    model_path= model,
+                    temp_output_dir = temp_output_dir + "/bulk",
+                    delete_temp_files = False
+                )
             bulk_embed.to_csv(temp_output_dir + "/bulk_embedding.csv")
     
     # solve

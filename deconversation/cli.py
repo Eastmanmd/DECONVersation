@@ -24,7 +24,7 @@ def build_parser():
     parser.add_argument(
         "--mode",
         default=None,
-        choices=["geneformer", "c2s", "cellhermes", "scgpt", "scvi", "raw"],
+        choices=["geneformer", "c2s", "cellhermes", "scgpt", "scvi","pca", "raw"],
         help="scFM model type (inferred from model path if omitted)",
     )
     parser.add_argument(
