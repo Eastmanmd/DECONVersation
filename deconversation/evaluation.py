@@ -56,7 +56,8 @@ def compute_rmse(
 
     if len(common_samples) == 0 or len(common_celltypes) == 0:
         raise ValueError("No overlapping samples or cell types found.")
-
+    if set(true_df.index) != set(pred_df.index) or set(true_df.columns) != set(pred_df.columns):
+        print("Mismatched/missing labels between true_df and pred_df. Taking shared.")
     true_aligned = true_df.loc[common_samples, common_celltypes]
     pred_aligned = pred_df.loc[common_samples, common_celltypes]
 
@@ -155,6 +156,8 @@ def compute_correlation(
 
     if len(common_samples) == 0 or len(common_celltypes) == 0:
         raise ValueError("No overlapping samples or cell types found.")
+    if set(true_df.index) != set(pred_df.index) or set(true_df.columns) != set(pred_df.columns):
+        print("Mismatched/missing labels between true_df and pred_df. Taking shared.")
 
     true_aligned = true_df.loc[common_samples, common_celltypes]
     pred_aligned = pred_df.loc[common_samples, common_celltypes]

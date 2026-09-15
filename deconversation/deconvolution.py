@@ -147,7 +147,9 @@ def run_deconv(
 
         elif solver == "centered_simplex":
             coeffs = centered_simplex_deconvolution(X,y)
-        #elif solver == "gradient_descent":
+        else:
+            raise ValueError(f"Unknown solver: {solver!r}")
+#elif solver == "gradient_descent":
         #    coeffs = gd_decompose(X, y, loss="cosine", sum_to_one=True, regularization="l1", lam=0.01)
 
         if normalize and coeffs.sum() > 0:
@@ -650,4 +652,4 @@ def solve_dampened_wls(S: np.ndarray, B: np.ndarray,
         solution = solution_avg
         iterations += 1
 
-    return solution / solution.sum()   # normalized to proportions, matches R output
+    return solution / solution.sum() if solution.sum() > 0 else solution  # normalized to proportions, matches R output

@@ -5,7 +5,7 @@ authors = [
   { name="Ali Oku", email="aoku@nygenome.org" },
   { name="Rui Fu", email="rfu@nygenome.org" }
 ]
-description = "DECONVersation is a tool designed for the deconvolution of bulk RNA-seq data using embeddings derived from large-scale, LLM-based foundation models. DECONVersation produces robust  cell type proportions by leveraging these high-dimensional embeddings to mitigate batch effects typically present in single-cell reference signature matrices."
+description = "DECONVersation is a tool designed for the deconvolution of bulk RNA-seq data using embeddings derived from large-scale, LLM-based foundation models. DECONVersation produces robust  cell type proportions by leveraging these high-dimensional embeddings to eschew explicit marker selection and mitigate batch effects typically present in single-cell reference signature matrices."
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
@@ -31,6 +31,18 @@ dependencies = [
     "peft",
     "tqdm",
     "importlib-resources",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7",
+    "pytest-cov>=4",
+]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "regression: desired behavior for a known defect; currently marked xfail",
 ]
 [tool.setuptools.packages.find]
 include = ["deconversation"]

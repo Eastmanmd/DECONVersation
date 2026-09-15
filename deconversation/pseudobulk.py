@@ -108,7 +108,7 @@ def generate_pseudobulk(
             
             # Warning for small cell populations (# Only used if the number of target cells is greater 
             #than number of available cells to be sampled
-            if available_target < n_target * min_cells_threshold:
+            if available_target < n_target / min_cells_threshold:
                 warnings.warn(
                     f"Pseudobulk {i+1}: Cell type '{target_type}' has only "
                     f"{available_target} cells but needs {n_target}. "
@@ -152,7 +152,7 @@ def generate_pseudobulk(
                     other_cells = rng.choice(
                         grouped_cells[target_type], 
                         size=n_other, 
-                        replace=False
+                        replace=len(all_other_indices) < n_other
                     ).tolist()
                     selected_indices.extend(other_cells)
                     
@@ -160,7 +160,7 @@ def generate_pseudobulk(
                 other_cells = rng.choice(
                     all_other_indices, 
                     size=n_other, 
-                    replace=False
+                    replace=len(all_other_indices) < n_other
                 ).tolist()
                 selected_indices.extend(other_cells)
         
