@@ -27,7 +27,7 @@ __pycache__/
 *.pyc
 *.pyc
 
-tutorials/
+tutorials_test/
 
 # Ignore specific test files:
 tests/geneset_dotplot.png
