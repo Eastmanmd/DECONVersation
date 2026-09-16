@@ -1,0 +1,49 @@
+Bootstrap: docker
+From: continuumio/miniconda3:latest
+
+%files
+    deconv_gf.yml /opt/env.yaml
+
+%post
+    set -eu
+
+    apt-get update
+    apt-get install --yes --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        git \
+        git-lfs
+
+    export CONDA_OVERRIDE_CUDA=12.9
+
+    conda env create \
+        --prefix /opt/conda/envs/deconversation \
+        --file /opt/env.yaml
+
+    conda clean --all --yes
+
+    git lfs install --system
+    git clone --depth 1 \
+        https://huggingface.co/ctheodoris/Geneformer \
+        /opt/Geneformer
+
+    cd /opt/Geneformer
+    git lfs pull
+
+    /opt/conda/envs/deconversation/bin/python \
+        -m pip install --no-cache-dir .
+
+    /opt/conda/envs/deconversation/bin/python \
+        -m pip check
+
+    rm -rf /var/lib/apt/lists/*
+
+%environment
+    export PATH=/opt/conda/envs/deconversation/bin:$PATH
+    export CONDA_PREFIX=/opt/conda/envs/deconversation
+
+%test
+    python --version
+
+%runscript
+    exec "$@"
