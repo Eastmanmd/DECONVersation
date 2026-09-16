@@ -28,3 +28,9 @@ __pycache__/
 *.pyc
 
 tutorials/
+
+# Ignore specific test files:
+tests/geneset_dotplot.png
+tests/query_cxg_genes.ipynb
+tests/test_attention_extraction.ipynb
+tests/test_deconversation_functions.ipynb
