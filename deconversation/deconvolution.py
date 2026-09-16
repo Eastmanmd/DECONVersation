@@ -91,7 +91,10 @@ def run_deconv(
         y = bulk_df[sample].values  
         
         if solver == "nnls":
-            coeffs, _ = nnls(X, y)
+            try:
+                coeffs, _ = nnls(X, y)
+            except RuntimeError:
+                coeffs, _ = nnls(X, y, maxiter = 1000, atol=1e-8)
             #if normalize and coeffs.sum() > 0:
             #    coeffs = coeffs / coeffs.sum()
         
