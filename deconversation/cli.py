@@ -18,8 +18,8 @@ def build_parser():
     )
     parser.add_argument(
         "-m", "--model",
-        required=True,
-        help="Path to zero-shot or fine-tuned scFM model",
+        default=None,
+        help="Path to zero-shot or fine-tuned scFM model (not required for --mode raw/pca)",
     )
     parser.add_argument(
         "--mode",
@@ -78,6 +78,8 @@ def main(argv=None):
 
     if args.adata is None and args.sig is None and not args.demo:
         parser.error("either --adata or --sig must be provided")
+    if args.model is None and args.mode not in {"raw", "pca"}:
+        parser.error("--model is required unless --mode is 'raw' or 'pca'")
 
     os.makedirs(args.temp_output_dir, exist_ok=True)
     print("Importing foundation model packages...")    

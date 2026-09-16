@@ -41,11 +41,6 @@ def test_cli_requires_reference_for_non_demo_run():
     assert error.value.code == 2
 
 
-@pytest.mark.regression
-@pytest.mark.xfail(
-    strict=True,
-    reason="--model is currently required even for raw and PCA modes",
-)
 def test_cli_raw_demo_does_not_require_model(tmp_path):
     output = tmp_path / "result.csv"
 

@@ -3,6 +3,7 @@
 - added fine-tuning functions for scgpt, cellhermes
 - added support for scvi, pca, and raw input deconvolution as comparison
 - added attention extraction function
+- pytest module
 ## [0.0.2]
 - added `deconverse` wrapper function and cli
 - added fine-tuning (c2s, gf) functions

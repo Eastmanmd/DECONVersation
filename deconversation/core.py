@@ -21,7 +21,7 @@ from contextlib import redirect_stdout
 # ============================================
 def deconverse(
     bulk_df: str,
-    model: str,
+    model: str = None,
     mode: str = None,
     adata: str = None,
     sig_df: str = None,
@@ -80,10 +80,12 @@ Parameters
     """
     for noisy in ("transformers", "datasets", "scanpy", "anndata"):
         logging.getLogger(noisy).setLevel(logging.ERROR)
-
+    if model is None and mode not in {"raw", "pca"}:
+        parser.error("model is required unless mode is 'raw' or 'pca'")
     if mode is None:
         mode = embeddings.infer_model(model)
     print("Using model: " + mode)
+    os.makedirs(temp_output_dir, exist_ok=True)
 
     # prep ref data
     # make ref signature matrix

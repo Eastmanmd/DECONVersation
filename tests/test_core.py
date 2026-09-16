@@ -58,11 +58,6 @@ def test_pca_demo_runs_without_foundation_model(tmp_path):
     assert np.isfinite(result.to_numpy()).all()
 
 
-@pytest.mark.regression
-@pytest.mark.xfail(
-    strict=True,
-    reason="the Python API currently assumes temp_output_dir already exists",
-)
 def test_raw_demo_creates_output_directory(tmp_path):
     output_dir = tmp_path / "new" / "nested"
 
