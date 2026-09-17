@@ -47,7 +47,13 @@ intersphinx_mapping = {
     "anndata": ("https://anndata.readthedocs.io/en/latest/", None),
 }
 
-html_theme = "furo"
+html_theme = "sphinx_rtd_theme"
 html_title = "DECONVersation"
-exclude_patterns = ["_build", "**.ipynb_checkpoints"]
+html_logo = "_static/deconversation.png"
+html_static_path = ["_static"]
+html_theme_options = {
+    "logo_only": True,
+    "navigation_depth": 3,
+    "collapse_navigation": False,
+}
 
