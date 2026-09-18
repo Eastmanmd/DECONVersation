@@ -73,7 +73,7 @@ def build_parser():
         "--transpose",
         action="store_true",
         help="If input matrices need to be transposed to geneXsample"
-
+    )
     return parser
 
 
