@@ -69,6 +69,11 @@ def build_parser():
         action="store_true",
         help="Run with small demo data"
     )
+    parser.add_argument(
+        "--transpose",
+        action="store_true",
+        help="If input matrices need to be transposed to geneXsample"
+
     return parser
 
 
@@ -85,6 +90,10 @@ def main(argv=None):
     print("Importing foundation model packages...")    
     from .core import deconverse
     
+    if args.transpose:
+        transpose=True
+    else:
+        transpose=False
     if args.demo:
         demo = True
         bulk_df = "demo"
@@ -106,6 +115,7 @@ def main(argv=None):
             cell_type_col=args.cell_type_col,
             sample_col=args.sample_col,
             solver=args.solver,
+            transpose=transpose,
             demo=demo
         )
     except Exception as e:

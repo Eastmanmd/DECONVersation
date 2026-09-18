@@ -251,7 +251,7 @@ dependencies:
   - notebook=7.5.1=pyhcf101f3_0
   - notebook-shim=0.2.4=pyhd8ed1ab_1
   - numba=0.63.1=py310h225f558_0
-  - numpy=2.2.6=py310hefbff90_0
+  - numpy=1.26.4
   - numpy_groupies=0.11.3=pyhd8ed1ab_0
   - openjpeg=2.5.4=h55fea9a_0
   - openssl=3.6.1=h35e630c_1
