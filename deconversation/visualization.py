@@ -122,6 +122,8 @@ def plot_true_vs_predicted(
         plt.xlabel("True")
         plt.ylabel("Predicted")
         plt.title(" ")
+        plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", borderaxespad=0)
+
 
         plt.tight_layout()
         if save_path:
