@@ -16,22 +16,23 @@ warnings.filterwarnings("ignore")
 logging.getLogger().setLevel(logging.ERROR)
 import io
 from contextlib import redirect_stdout
+
+
 # ============================================
 # Main function for extracting embeddings and deconvolution
 # ============================================
 def deconverse(
-    bulk_df: str,
-    model: str = None,
-    mode: str = None,
-    adata: str = None,
-    sig_df: str = None,
-    temp_output_dir: str = "temp",
-    cell_type_col: str = "type",
-    sample_col: str = "sample",
-    solver: str = "nnls",
-    demo: bool = False,
-    transpose = False
-) -> pd.DataFrame:
+    bulk_df,
+    model = None,
+    mode = None,
+    adata = None,
+    sig_df = None,
+    temp_output_dir = "temp",
+    cell_type_col = "type",
+    sample_col = "sample",
+    solver = "nnls",
+    demo = False,
+    transpose = False):
     """
     Extracting embeddings for bulk and ref signature data, then run NNLS-based and other methods for deconvolution
     
