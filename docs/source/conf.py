@@ -52,7 +52,6 @@ html_theme = "sphinx_rtd_theme"
 html_title = "DECONVersation"
 html_static_path = ["_static"]
 html_theme_options = {
-    "logo_only": True,
     "navigation_depth": 3,
     "collapse_navigation": False,
 }

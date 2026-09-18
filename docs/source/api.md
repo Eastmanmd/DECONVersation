@@ -2,8 +2,6 @@
 
 ## Modules
 
-## Modules
-
 - [deconversation](#deconversation)
 - [deconversation.attention](#deconversationattention)
 - [deconversation.cli](#deconversationcli)
