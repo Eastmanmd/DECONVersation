@@ -34,7 +34,8 @@ def deconverse(
 ) -> pd.DataFrame:
     """
     Extracting embeddings for bulk and ref signature data, then run NNLS-based and other methods for deconvolution
-Parameters
+    
+    Parameters
     ----------
     bulk_df : str
         path to bulk expression matrix (Rows:Genes, Columns:Samples)

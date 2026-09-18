@@ -2,7 +2,6 @@
 
 ## Modules
 
-- [deconversation](#deconversation)
 - [deconversation.attention](#deconversationattention)
 - [deconversation.cli](#deconversationcli)
 - [deconversation.core](#deconversationcore)
@@ -15,16 +14,6 @@
 - [deconversation.resource_loader](#deconversationresource_loader)
 - [deconversation.visualization](#deconversationvisualization)
 
-## deconversation
-
-Top-level package. Exposes the end-to-end entry point `deconverse()`.
-
-```{eval-rst}
-.. automodule:: deconversation
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
 
 ## deconversation.attention
 
