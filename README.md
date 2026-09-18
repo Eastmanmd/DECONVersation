@@ -134,8 +134,8 @@ singularity exec --nv \
 
 ## Tutorials
 
-- [DECONVersation on bulk RNA-seq using Geneformer](tutorials/extracting_embeddings_from_bulk.ipynb): Extract embeddings and deconvolute on bulk against a single cell reference.
-- [DECONVersation on pseudobulk using Geneformer](tutorials/extracting_embeddings_from_pseudobulk_geneformer.ipynb): Validate deconvolution using pseudobulk data.
+- [DECONVersation on bulk RNA-seq using Geneformer](tutorials/run_deconversation_on_bulk_geneformer.ipynb): Extract embeddings and deconvolute on bulk against a single cell reference.
+- [DECONVersation on pseudobulk using Geneformer](tutorials/run_deconversation_on_pseudobulk_data.ipynb): Validate deconvolution using pseudobulk data.
 
 ---
 
