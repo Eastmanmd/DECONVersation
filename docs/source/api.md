@@ -2,11 +2,20 @@
 
 ## Modules
 
-```{eval-rst}
-.. contents::
-   :local:
-   :depth: 1
-```
+## Modules
+
+- [deconversation](#deconversation)
+- [deconversation.attention](#deconversationattention)
+- [deconversation.cli](#deconversationcli)
+- [deconversation.core](#deconversationcore)
+- [deconversation.deconvolution](#deconversationdeconvolution)
+- [deconversation.embeddings](#deconversationembeddings)
+- [deconversation.evaluation](#deconversationevaluation)
+- [deconversation.models](#deconversationmodels)
+- [deconversation.preprocessing](#deconversationpreprocessing)
+- [deconversation.pseudobulk](#deconversationpseudobulk)
+- [deconversation.resource_loader](#deconversationresource_loader)
+- [deconversation.visualization](#deconversationvisualization)
 
 ## deconversation
 

@@ -39,6 +39,7 @@ napoleon_numpy_docstring = True
 # Ship notebooks with outputs already saved; the builder has no GPU or data
 nb_execution_mode = "off"
 myst_enable_extensions = ["colon_fence", "dollarmath"]
+myst_heading_anchors = 3
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
