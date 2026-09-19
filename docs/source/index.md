@@ -21,21 +21,6 @@ installation
 quickstart
 ```
 
-
-```bash
-conda env create -f deconv_gf.yml
-```
-
-Apptainer `.def` files are also included.
-
-```{toctree}
-:maxdepth: 2
-:caption: Getting Started
-
-introduction
-installation
-```
-
 ```{toctree}
 :maxdepth: 2
 :caption: Tutorials
@@ -64,6 +49,4 @@ references
 * {ref}`genindex`
 * {ref}`modindex`
 * {ref}`search`
-
-
 
