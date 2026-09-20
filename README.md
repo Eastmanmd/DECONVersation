@@ -91,6 +91,7 @@ Across 6 benchmarked real bulk and 1 pseudobulk datasets, we calculate overall R
 | 5 | [Pre-Frontal Cortex (Huuki-Myers)](https://pubmed.ncbi.nlm.nih.gov/38781370/)| DLPFC | RNAScope/IF | 6 |
 | 6 | [Retina (Guo)](https://pmc.ncbi.nlm.nih.gov/articles/PMC11789644/)| Retina | snRNA | 6 |
 | 7 | [HECA (Marečková)](https://pubmed.ncbi.nlm.nih.gov/39198675/) | Endometrium | pseudobulk | 3 (lineage) and 9 (finer type) |
+| 8 | [Lung tumor (Guimarães)](https://pubmed.ncbi.nlm.nih.gov/38972873/) | Lung | pseudobulk | 10 |
 
 ---
 
