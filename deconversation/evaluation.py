@@ -10,6 +10,7 @@ from scipy.stats import pearsonr, spearmanr
 def compute_rmse(
     true_df: pd.DataFrame,
     pred_df: pd.DataFrame,
+    allow_mismatched_types : bool = False,
     return_per_sample: bool = False,
     return_per_celltype: bool = False,
 ):
@@ -57,7 +58,10 @@ def compute_rmse(
     if len(common_samples) == 0 or len(common_celltypes) == 0:
         raise ValueError("No overlapping samples or cell types found.")
     if set(true_df.index) != set(pred_df.index) or set(true_df.columns) != set(pred_df.columns):
-        print("Mismatched/missing labels between true_df and pred_df. Taking shared.")
+        if allow_mismatched_types:
+            print("Mismatched/missing labels between true_df and pred_df. Taking shared.")
+        else:
+            raise ValueError("Mismatched/missing labels between true_df and pred_df. Set allow_mismatched_types = True to take shared labels.")
     true_aligned = true_df.loc[common_samples, common_celltypes]
     pred_aligned = pred_df.loc[common_samples, common_celltypes]
 
@@ -100,6 +104,7 @@ def compute_correlation(
     true_df: pd.DataFrame,
     pred_df: pd.DataFrame,
     method: str = "pearson",
+    allow_mismatched_types : bool = False,
     return_per_sample: bool = False,
     return_per_celltype: bool = False,
 ):
@@ -157,7 +162,10 @@ def compute_correlation(
     if len(common_samples) == 0 or len(common_celltypes) == 0:
         raise ValueError("No overlapping samples or cell types found.")
     if set(true_df.index) != set(pred_df.index) or set(true_df.columns) != set(pred_df.columns):
-        print("Mismatched/missing labels between true_df and pred_df. Taking shared.")
+        if allow_mismatched_types:
+            print("Mismatched/missing labels between true_df and pred_df. Taking shared.")
+        else:
+            raise ValueError("Mismatched/missing labels between true_df and pred_df. Set allow_mismatched_types = True to take shared labels.")
 
     true_aligned = true_df.loc[common_samples, common_celltypes]
     pred_aligned = pred_df.loc[common_samples, common_celltypes]
@@ -239,6 +247,7 @@ def plot_rmse_vs_corr_by_celltype(
     true_df: pd.DataFrame,
     pred_df: pd.DataFrame,
     method: str = "pearson",
+    allow_mismatched_types : bool = False,
     dot_size: int = 40,
     annotate: bool = True,
     save_path: str = None,
@@ -281,6 +290,11 @@ def plot_rmse_vs_corr_by_celltype(
 
     if len(common_samples) == 0 or len(common_cols) == 0:
         raise ValueError("No overlapping samples or cell types found.")
+    if set(true_df.index) != set(pred_df.index) or set(true_df.columns) != set(pred_df.columns):
+        if allow_mismatched_types:
+            print("Mismatched/missing labels between true_df and pred_df. Taking shared.")
+        else:
+            raise ValueError("Mismatched/missing labels between true_df and pred_df. Set allow_mismatched_types = True to take shared labels.")
 
     true_aligned = true_df.loc[common_samples, common_cols]
     pred_aligned = pred_df.loc[common_samples, common_cols]

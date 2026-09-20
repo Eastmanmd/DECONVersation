@@ -86,3 +86,22 @@ def test_single_rare_population_samples_with_replacement():
 
     assert pseudobulk.shape == (2, 2)
     np.testing.assert_allclose(proportions["rare"], 1.0)
+
+
+def test_default_threshold_does_not_replace_when_enough_cells(dense_adata, recwarn):
+    generate_pseudobulk(
+        dense_adata,
+        "cell_type",
+        n_pseudobulks=4,
+        target_proportion_min=1.0,
+        target_proportion_max=1.0,
+        n_cells_per_pseudobulk=2,
+        random_state=11,
+    )
+
+    replacement_warnings = [
+        warning
+        for warning in recwarn
+        if "replacement" in str(warning.message).lower()
+    ]
+    assert replacement_warnings == []

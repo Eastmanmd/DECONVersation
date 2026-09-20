@@ -20,7 +20,7 @@ def generate_pseudobulk(
     target_proportion_max: float = 0.80, 
     n_cells_per_pseudobulk: int = 600, 
     random_state: int = None,  
-    min_cells_threshold: float = 0.1
+    min_cells_threshold: float = 1
 ):
     """
     Create pseudobulk samples with controlled cell type proportions.

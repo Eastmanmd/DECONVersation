@@ -76,3 +76,12 @@ def test_metrics_reject_completely_disjoint_labels(function, metric_frames):
 
     with pytest.raises(ValueError, match="No overlapping"):
         function(true, predicted)
+
+
+@pytest.mark.parametrize("function", [compute_rmse, compute_correlation])
+def test_metrics_reject_partial_label_mismatch(function, metric_frames):
+    true, predicted = metric_frames
+    predicted = predicted.drop(index="sample_2", columns="type_b")
+
+    with pytest.raises(ValueError, match="(?i)missing|mismatch"):
+        function(true, predicted)
