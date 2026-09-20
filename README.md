@@ -73,14 +73,14 @@ style E3 stroke-width:4px
 
 ## Benchmarking 
 
-DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground truths and 1 pseudobulk dataset, spanning diverse tissue types and experimental conditions, to evaluate deconvolution performance and generalizability.
+DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground truths and 2 pseudobulk dataset, spanning diverse tissue types and experimental conditions, to evaluate deconvolution performance and generalizability.
 
 <h1 align="left">
-  <img src="docs/full_bench_more_all_8.png" width="800">
+  <img src="docs/full_bench_more_all_8.png" width="900">
 </h1>
 
 <b> Summary </b> <br>
-Across 6 benchmarked real bulk and 1 pseudobulk datasets, we calculate overall RMSE and correlation coefficient alongside mean RMSE and correlation averaged across cell types. Fine-tuned Cell2Sentence and Geneformer-based embeddings both demonstrate consistent deconvolution performance across all 6 datasets, with fine-tuned models outperforming their zero-shot counterparts in each case. Though zero-shot performance is already comparable to some common tools in the field, this highlights the benefit of fine-tuning (training models to predict cell type annotations from a single-cell reference). Among the tested tools, only DWLS R package achieves comparable performance to the fine-tuned embedding-based approaches available in DECONVersation.
+Across 6 benchmarked real bulk and 2 pseudobulk datasets, we calculate overall RMSE and correlation coefficient alongside mean RMSE and correlation averaged across cell types. Fine-tuned Cell2Sentence and Geneformer-based embeddings both demonstrate consistent deconvolution performance across all datasets, with fine-tuned models outperforming their zero-shot counterparts in each case. Though zero-shot performance is already comparable to some common tools in the field, this highlights the benefit of fine-tuning (training models to predict cell type annotations from a single-cell reference). Among the tested tools, only DWLS R package achieves comparable performance to the fine-tuned embedding-based approaches available in DECONVersation.
 
 | # | Dataset | Source | Ground Truth | Cell Type # | 
 | -------- | -------- | --------  | --------  | --------  |
@@ -90,7 +90,7 @@ Across 6 benchmarked real bulk and 1 pseudobulk datasets, we calculate overall R
 | 4 | [Cell Line Mixture (Cobos)](https://europepmc.org/article/med/37528411)| Cell Line Mixture| Mixture Count | 6 |
 | 5 | [Pre-Frontal Cortex (Huuki-Myers)](https://pubmed.ncbi.nlm.nih.gov/38781370/)| DLPFC | RNAScope/IF | 6 |
 | 6 | [Retina (Guo)](https://pmc.ncbi.nlm.nih.gov/articles/PMC11789644/)| Retina | snRNA | 6 |
-| 7 | [HECA (Marečková)](https://pubmed.ncbi.nlm.nih.gov/39198675/) | Endometrium | pseudobulk | 3 (lineage) and 9 (finer type) |
+| 7 | [HECA (Marečková)](https://pubmed.ncbi.nlm.nih.gov/39198675/) | Endometrium | pseudobulk | 9 |
 | 8 | [Lung tumor (Guimarães)](https://pubmed.ncbi.nlm.nih.gov/38972873/) | Lung | pseudobulk | 10 |
 
 ---
