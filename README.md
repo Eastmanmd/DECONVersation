@@ -76,7 +76,7 @@ style E3 stroke-width:4px
 DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground truths and 1 pseudobulk dataset, spanning diverse tissue types and experimental conditions, to evaluate deconvolution performance and generalizability.
 
 <h1 align="left">
-  <img src="docs/full_bench_more_all_7.png" width="800">
+  <img src="docs/full_bench_more_all_8.png" width="800">
 </h1>
 
 <b> Summary </b> <br>
