@@ -1,5 +1,5 @@
 <h1 align="left">
-  <img src="docs/deconversation.png" width="500">
+  <img src="https://raw.githubusercontent.com/Eastmanmd/DECONVersation/main/docs/deconversation.png" width="500">
 </h1>
 
 [![PyPI version](https://img.shields.io/pypi/v/DECONVersation.svg)](https://pypi.org/project/DECONVersation/)
@@ -11,63 +11,9 @@ DECONVersation leverages embedding representations from large-scale, LLM-based f
 
 DECONVersation enables end-to-end deconvolution through a set of easy-to-use functions. Embeddings can be extracted from both bulk and single-cell datasets, with single-cell embeddings used to construct robust signature matrices from .h5ad references. Cell type proportions are then estimated via NNLS directly in embedding space. Built-in benchmarking tools evaluate predictions against ground truth using RMSE and Pearson correlation, complemented by visualization utilities for assessing method performance. DECONVersation also supports testing and validation with in-built pseudobulk functions. 
 
-```mermaid
----
-config:
-  theme: 'neutral'
----
-flowchart
-    subgraph ide1 [standard deconv]
-    direction TB 
-    A[scRNA: gene x cell] --> B(full profile: gene x type)
-    A[scRNA: gene x cell] --> C(markers)
-    D[bulkRNA: gene x sample]
-    B --> F(signature: marker x type)
-    C --> F
-    F bb@==> E
-    D db@==> E{{deconv res:
-    sample x type%}}
-    end
-    subgraph ide2 [foundation model deconv]
-    direction TB
-    A1[scRNA: gene x cell] --> B1(full profile: gene x type)
-    C2([fa:fa-robot zero-shot model]) --> F1(embeddings x type)
-    C2 --> G1
-    B1 --> F1(embeddings x type)
-    D1[bulkRNA: gene x sample] --> G1(embeddings x sample)
-    F1 f1b@==> E1{{deconv res:
-    sample x type%}}
-    G1 g1b@==> E1
-    end
-    subgraph ide2 [foundation model deconv]
-    direction TB
-    A3[scRNA: gene x cell] --> B3(full profile: gene x type)
-    A3[scRNA: gene x cell] --> C3([fa:fa-robot fine-tuned model])
-    B3 --> F3(embeddings x type)
-    C3 --> F3
-    D3[bulkRNA: gene x sample] --> G3(embeddings x sample)
-    C3 --> G3
-    F3 f1b@==> E3{{deconv res:
-    sample x type%}}
-    G3 g1b@==> E3
-    end
-
-bb@{ curve: linear }
-db@{ curve: linear }
-f1b@{ curve: linear }
-g1b@{ curve: linear }
-style A fill:green,color:#fff
-style A1 fill:green,color:#fff
-style A3 fill:green,color:#fff
-style D fill:blue,color:#fff
-style D1 fill:blue,color:#fff
-style D3 fill:blue,color:#fff
-style C2 fill:red,color:#fff
-style C3 fill:red,color:#fff
-style E stroke-width:4px
-style E1 stroke-width:4px
-style E3 stroke-width:4px
-```
+<h1 align="left">
+  <img src="https://raw.githubusercontent.com/Eastmanmd/DECONVersation/main/docs/workflow.png" width="900">
+</h1>
 
 ---
 
@@ -76,7 +22,7 @@ style E3 stroke-width:4px
 DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground truths and 2 pseudobulk dataset, spanning diverse tissue types and experimental conditions, to evaluate deconvolution performance and generalizability.
 
 <h1 align="left">
-  <img src="docs/full_bench_more_all_8.png" width="900">
+  <img src="https://raw.githubusercontent.com/Eastmanmd/DECONVersation/main/docs/full_bench_more_all_8.png" width="900">
 </h1>
 
 <b> Summary </b> <br>
