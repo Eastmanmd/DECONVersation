@@ -26,7 +26,7 @@ except ImportError as e:
 # Extract geneformer attention 
 # ---------------------------------
 def get_attention_by_gene_gf(
-    data, #anndata or csv (sigmat)
+    data, #anndata or dataframe
     model_path,
     output_dir,
     cell_types, # Accepts a single string or a list of cell types
@@ -37,6 +37,58 @@ def get_attention_by_gene_gf(
     random_state = 42,
     min_cells_per_cell_type = None,
 ):
+    """
+    Extract per-gene attention scores from Geneformer for one or more cell types.
+
+    Runs cells through a pretrained or fine-tuned Geneformer model and extracts the
+    CLS token's attention over gene tokens from the final layer, then maps token IDs
+    back to gene names and averages across cells. The result ranks genes by how much
+    the model attends to them when representing each cell type.
+    
+    Parameters
+    ----------
+    data : anndata.AnnData or pandas.DataFrame
+        Expression data. A DataFrame (e.g. a signature matrix) is converted to
+        AnnData internally. Gene identifiers must be Ensembl IDs, as required by
+        Geneformer.
+    model_path : str or pathlib.Path
+        Path to the Geneformer model to use. A local directory (such as a model
+        fine-tuned with :func:`train_geneformer_cell_classifier`) or a Hugging Face
+        repository ID.
+    output_dir : str or pathlib.Path
+        Directory for intermediate files. Receives ``{output_name}_data.h5ad`` and a
+        ``tokenized.dataset/`` directory.
+    cell_types : str or list of str
+        Cell type(s) to extract attention for. A single string is accepted. Each
+        type is filtered and processed separately.
+    output_name : str, default "gf_attention"
+        Filename prefix for the intermediate ``.h5ad`` written to ``output_dir``.
+    cell_type_col : str, default "cell_type"
+        Column in ``data.obs`` holding the cell type labels matched against
+        ``cell_types``.
+    model_version : str, default "V2"
+        Geneformer model version, passed to ``TranscriptomeTokenizer``. Must match
+        the model at ``model_path``.
+    num_of_cells : int, default 50
+        Maximum cells to process per cell type. The effective count is
+        ``min(num_of_cells, n_available)``, so fewer are used when a type is rare.
+    random_state : int, default 42
+        Seed for subsampling, for reproducible cell selection.
+    min_cells_per_cell_type : int, optional
+        If given (AnnData input only), each cell type group is subsampled to at most
+        this many cells before tokenization. Use to cap cost on large datasets.
+
+    Returns
+    -------
+    dict
+        Nested dictionary mapping each cell type to its per-gene mean attention
+        scores::
+
+            {cell_type: {gene_name: mean_attention_score, ...}, ...}
+
+        Scores are averaged over the cells processed for that type. Cell types with
+        no matching cells are absent from the result.
+    """
 
     # Ensure cell_types is a list even if a single string is passed
     if isinstance(cell_types, str):

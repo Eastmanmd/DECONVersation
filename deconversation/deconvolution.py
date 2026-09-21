@@ -307,6 +307,36 @@ def run_all_deconv(
     skip_errors: bool = True,
 ) -> Dict[str, pd.DataFrame]:
 
+    """
+    Run deconvolution using all available solvers or a select set
+    of solvers.
+
+    Parameters
+    ----------
+    bulk_df : pd.DataFrame
+        bulk expression matrix (Rows:Genes, Columns:Samples)
+        
+    signature_df : pd.DataFrame
+        Signature matrix (Rows:Genes, Columns:Cell types )
+    
+    solvers : list
+        list of solvers to use. E.G nnls, ridge, elasticnet, nusvr
+
+    normalize : bool, default=True
+        If True, normalize NNLS coefficients to sum to 1 per sample
+        so results represent proportions.
+
+    skip_errors: bool = True
+        skips all errors encountered
+
+    Returns
+    -------
+    Dict
+        Dictionary containing solvers as keys and correspondong
+        deconvolution results as values.
+        
+    """
+
     # If none return all solvers 
     if solvers is None:
         solvers = [

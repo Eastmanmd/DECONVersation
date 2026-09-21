@@ -118,7 +118,32 @@ def extract_embs(
     log=False,
     log_path=None,
 
-):
+):  
+    """
+    Function to extract embeddings from bulk data or
+    signature matrix
+
+    Parameters
+    ----------
+    bulk_df : pd.DataFrame
+        Input pseudobulk (samples x Ensembl IDs).
+    mode: str
+        foundation or deep learning model either geneformer, scgpt, 
+        c2s, cellHermes or scVI 
+    temp_output_dir : str
+        path to durectory to store generated intermediate files 
+    model_path: str
+        path to model 
+    delete_temp_files : bool
+        if true then delete intermediate files generated during 
+        embedding extraction
+    layer_to_quant : intr
+        geneformer only, geneformer layer to extract embedding (default=18)
+    token_output_name: str
+        geneformer only, pre_fix for geneformer tokenized directory
+    model_version: str
+        geneformer only, version of geneformer to use (V1 or V2)        
+    """
     
     # Create a dedicated temp subfolder to avoid touching any existing user files
     safe_temp_dir = os.path.join(temp_output_dir, "temp")
@@ -185,6 +210,22 @@ def extract_components(
     transform = True, 
     n_components = 50
 ):
+    """
+    Function to extract components from bulk data
+    or signature matrix data
+
+    Parameters
+    ----------
+    bulk_df : pd.DataFrame
+        Input pseudobulk (samples x Ensembl IDs).
+    mode: str
+        method, currently limited to PCA
+    transform : bool
+        if true, then transform data before extracting
+        components 
+    n_components: int
+        number of components to extract
+    """
 
     # Extract PCA dimensions
     if mode == "pca":
@@ -531,6 +572,16 @@ def get_embedding_ch(
     bulk_df,
     model_path
 ):
+    """
+    Function to extract cellHermes embeddings 
+
+    Parameters
+    ----------
+    bulk_df : pd.DataFrame
+        Expression matrix (samples x genes). 
+    model_path : str
+        path to model
+    """
     # load model
     args = {
         "model_name_or_path": f"{model_path}",
@@ -681,6 +732,16 @@ def get_embedding_scgpt(
     bulk_df,
     model_path
 ):
+    """
+    Function to extract scGPT embeddings 
+
+    Parameters
+    ----------
+    bulk_df : pd.DataFrame
+        Expression matrix (samples x genes). 
+    model_path : str
+        path to model
+    """
     adata = sc.AnnData(bulk_df)
     adata.var["gene_name"] = adata.var.index
     adata.obs["sample"] = adata.obs.index
@@ -707,7 +768,16 @@ def get_embedding_scgpt(
 def get_embedding_scvi(
     bulk_df, 
     model_path):
-    
+    """
+    Function to extract scVI embedddings 
+
+    Parameters
+    ----------
+    bulk_df : pd.DataFrame
+        Expression matrix (samples x genes). 
+    model_path : str
+        path to model
+    """
     # Convert to AnnData
     adata = sc.AnnData(bulk_df)
     adata.obs_names = bulk_df.index
@@ -730,10 +800,26 @@ def get_embedding_scvi(
 # --------------------------------
 # Extract PCA components
 # --------------------------------
-def get_embedding_pca(bulk_df, 
-                      sig_mat, 
-                      transform=True, 
-                      n_components=50):
+def get_embedding_pca(
+    bulk_df, 
+    sig_mat, 
+    transform=True, 
+    n_components=50):
+
+    """
+    Function to extract PCa components 
+
+    Parameters
+    ----------
+    bulk_df : pd.DataFrame
+        Expression matrix (samples x genes). 
+    sig_mat : pd.DataFrame
+        Expression matrix (samples x genes). 
+    transform : str
+        path to model
+    n_components : int
+        number of principal components 
+    """
 
     # align genes between bulk and signature matrix
     shared_genes = bulk_df.columns.intersection(sig_mat.columns)
