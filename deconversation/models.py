@@ -884,7 +884,8 @@ def train_scgpt_cell_classifier(
         celltype_col,
         name,
         base_model,
-        output_dir
+        output_dir,
+        freeze=False
 ):
     import shutil
     hyperparameter_defaults = dict(
@@ -910,7 +911,7 @@ def train_scgpt_cell_classifier(
         pre_norm=False,
         amp=True,  # Automatic Mixed Precision
         include_zero_gene = False,
-        freeze = False, #freeze
+        freeze = freeze,
         DSBN = False,  # Domain-spec batchnorm
     )
 
