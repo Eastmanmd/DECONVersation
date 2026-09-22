@@ -27,6 +27,8 @@ quickstart
 
 tutorials/run_deconversation_on_bulk_geneformer
 tutorials/run_deconversation_on_pseudobulk_data
+tutorials/finetune_geneformer_for_cell_type_classification
+tutorials/extarct_attention_weights
 ```
 
 ```{toctree}
