@@ -9,7 +9,7 @@
 
 DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. This takes advantage of the strengths of scFMs in faithfully representing transcriptomes, learning meaningful biological networks, and minimizing batch effect and noise. Currently, cell embeddings from [Geneformer](https://huggingface.co/ctheodoris/Geneformer), [Cell2Sentence](https://github.com/vandijklab/cell2sentence), [CellHermes](https://github.com/theislab/CellHermes), and [scGPT](https://github.com/bowang-lab/scGPT) are supported (+PCA and scVI for comparison). 
 
-DECONVersation enables end-to-end deconvolution through a set of easy-to-use functions. Embeddings can be extracted from both bulk and single-cell datasets, with single-cell embeddings used to construct robust signature matrices from .h5ad references. Cell type proportions are then estimated via NNLS directly in embedding space. Built-in benchmarking tools evaluate predictions against ground truth using RMSE and Pearson correlation, complemented by visualization utilities for assessing method performance. DECONVersation also supports testing and validation with in-built pseudobulk functions. 
+DECONVersation enables end-to-end deconvolution through a set of easy-to-use functions. Embeddings can be extracted from both bulk and single-cell datasets, with single-cell embeddings used to construct robust signature matrices from .h5ad references. Cell type proportions are then estimated via NNLS directly in embedding space. Built-in benchmarking tools evaluate predictions against ground truth using RMSE and Pearson correlation, complemented by visualization utilities for assessing method performance. DECONVersation also supports testing and validation with in-built [pseudobulk functions](tutorials/run_deconversation_on_pseudobulk_data.ipynb), [model fine-tuning](tutorials/finetune_geneformer_for_cell_type_classification.ipynb) and [attention extraction](tutorials/extract_attention_weights.ipynb).
 
 <h1 align="left">
   <img src="https://raw.githubusercontent.com/Eastmanmd/DECONVersation/main/docs/workflow.png" width="900">
@@ -84,7 +84,7 @@ singularity exec --nv \
 - [DECONVersation on bulk RNA-seq using Geneformer](tutorials/run_deconversation_on_bulk_geneformer.ipynb): Extract embeddings and deconvolute on bulk against a single cell reference.
 - [DECONVersation on pseudobulk using Geneformer](tutorials/run_deconversation_on_pseudobulk_data.ipynb): Validate deconvolution using pseudobulk data.
 - [Fine-tune geneformer for cell type classification](tutorials/finetune_geneformer_for_cell_type_classification.ipynb): Fine-tune geneformer for cell type classification 
-- [Extraction attention weights using DECONVersation](tutorials/extract_attention_weights.ipynb): Extract scFM attention weights (Geneformer, scGPT & cellHermes)
+- [Extracting attention weights using DECONVersation](tutorials/extract_attention_weights.ipynb): Extract scFM attention weights (Geneformer, scGPT & cellHermes)
 
 ---
 
