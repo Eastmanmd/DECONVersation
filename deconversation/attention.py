@@ -30,11 +30,11 @@ except ImportError as e:
 # ---------------------------------
 # Attention extractor
 # ---------------------------------
-def get_attention_by_gene(
+def get_attention(
     data,
+    mode,  # "cellhermes", "c2s" or "geneformer"
     model_path,
     cell_types,
-    model_type,  # "ch", "c2s" or "gf"
     cell_type_col="cell_type",
     num_of_cells=50,
     random_state=42,
@@ -48,9 +48,8 @@ def get_attention_by_gene(
     model_version="V2",
     min_cells_per_cell_type=None,
 ):
-    model_type = str(model_type).lower()
-
     # Get shared parameters
+    mode = str(mode).lower()
     common = dict(
         data=data,
         model_path=model_path,
@@ -61,21 +60,21 @@ def get_attention_by_gene(
     )
 
     # cellHermes
-    if model_type == "cellhermes":
+    if mode == "cellhermes":
         return get_attention_by_gene_ch(
             **common,
             n_genes = n_genes
         )
         
     # cell2sentence 
-    if model_type == "c2s":
+    if mode == "c2s":
         return get_attention_by_gene_c2s(
             **common,
             n_genes = n_genes
         )   
 
     # Geneformer
-    if model_type == "geneformer":
+    if mode == "geneformer":
         if output_dir is None:
             raise ValueError("output_dir is required when model_type='geneformer'")
         if n_genes is not None:
