@@ -885,7 +885,9 @@ def train_scgpt_cell_classifier(
         name,
         base_model,
         output_dir,
-        freeze=False
+        freeze=False,
+        mvc=False,
+        mask_ratio=0.0
 ):
     import shutil
     hyperparameter_defaults = dict(
@@ -893,10 +895,10 @@ def train_scgpt_cell_classifier(
         dataset_name=name,
         do_train=True,
         load_model=base_model,
-        mask_ratio=0.0,
+        mask_ratio=mask_ratio,
         epochs=10,
         n_bins=51,
-        MVC=False, # Masked value prediction for cell embedding
+        MVC=mvc, # Masked value prediction for cell embedding
         ecs_thres=0.0, # Elastic cell similarity objective, 0.0 to 1.0, 0.0 to disable
         dab_weight=0.0,
         lr=1e-4,
