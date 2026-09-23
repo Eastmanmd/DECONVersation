@@ -37,9 +37,9 @@ dependencies:
       - cell-gears==0.0.2
       - dcor==0.7
       - einops==0.8.2
-      - flash-attn==1.0.3.post0
       - orbax==0.1.7
       - git+https://github.com/bowang-lab/scGPT/
+      - transformers==5.12.1
       - triton
       - torch==2.4.1+cu124
       - torchtext

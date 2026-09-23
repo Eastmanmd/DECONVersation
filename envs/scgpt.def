@@ -1,0 +1,28 @@
+Bootstrap: docker
+From: continuumio/miniconda3:latest
+
+%files
+    deconv_scgpt_cu129.yml /opt/env.yaml
+
+%post
+    set -eu
+    
+    apt-get update && apt-get install -y build-essential
+
+    export CONDA_OVERRIDE_CUDA=12.4
+    
+    conda env create \
+        --prefix /opt/conda/envs/deconversation \
+        --file /opt/env.yaml
+
+    conda clean --all --yes
+
+%environment
+    export PATH=/opt/conda/envs/deconversation/bin:$PATH
+    export CONDA_PREFIX=/opt/conda/envs/deconversation
+
+%test
+    python --version
+
+%runscript
+    exec "$@"

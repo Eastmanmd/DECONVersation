@@ -1,4 +1,4 @@
-name: deconv_c2s_cuda121_test
+name: deconv_c2s_test
 channels:
   - conda-forge
   - bioconda
