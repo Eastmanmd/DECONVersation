@@ -173,5 +173,8 @@ def deconverse(
     cell_prop_pred = deconvolution.run_deconv(bulk_df = bulk_embed.T,
                                 signature_df = sig_mat_embed.T, 
                                 solver= solver)
+    # remove index and column names
+    cell_prop_pred.index.name = None
+    cell_prop_pred.columns.name = None
 
     return cell_prop_pred
