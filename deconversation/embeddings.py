@@ -105,6 +105,7 @@ def extract_embs(
     layer_to_quant=18,  # Default layer is last layer
     token_output_name="gf_tokens",
     model_version = "V2",
+    batch_size  = 5, # for geneformer and scGPT
 
     # Cell2Sentence only
     c2s_save_name="c2s_object",
@@ -142,7 +143,9 @@ def extract_embs(
     token_output_name: str
         geneformer only, pre_fix for geneformer tokenized directory
     model_version: str
-        geneformer only, version of geneformer to use (V1 or V2)        
+        geneformer only, version of geneformer to use (V1 or V2)  
+    batch_size: int
+        forward batch size (for geneformer and scGPT)
     """
     
     # Create a dedicated temp subfolder to avoid touching any existing user files
@@ -158,6 +161,7 @@ def extract_embs(
             geneformer_model_path=model_path,
             delete_temp_files=delete_temp_files,
             model_version = model_version,
+            batch_size =  batch_size,
             layer_to_quant=layer_to_quant,
         )
         
@@ -187,7 +191,7 @@ def extract_embs(
 
     # scGPT
     elif mode == "scgpt":
-        emb = get_embedding_scgpt(bulk_df=bulk_df, model_path=model_path)
+        emb = get_embedding_scgpt(bulk_df=bulk_df, model_path=model_path, batch_size=batch_size)
         
     #  scVI
     elif mode == "scvi":
@@ -217,7 +221,9 @@ def extract_components(
     Parameters
     ----------
     bulk_df : pd.DataFrame
-        Input pseudobulk (samples x Ensembl IDs).
+        Input pseudobulk (samples x Ensembl IDs/gene symbol).
+    sig_mat: pd.DataFrame
+        Signature matrix (cell type x ensembl IDs/gene symbol).
     mode: str
         method, currently limited to PCA
     transform : bool
@@ -246,6 +252,7 @@ def get_embedding_gf(
     token_output_name,
     delete_temp_files,
     geneformer_model_path,
+    batch_size = 5,
     model_version="V2",
     layer_to_quant=18,
 ):
@@ -261,8 +268,16 @@ def get_embedding_gf(
         Directory to save tokenized outputs.  
     token_output_name : str
         Base name for tokenized dataset files.
+    delete_temp_files: bool
+        If True, deletes temp files generated while running geneformer
     geneformer_model_path : str
         Path to pretrained Geneformer model directory.
+    batch_size: int
+        forward batch size
+    model_version: str
+        Geneformer model: "V1" or "V2"
+    layer_to_quant: int
+        Geneformer layer to extract embeddings
     """
 
     # Check dependencies 
@@ -340,7 +355,7 @@ def get_embedding_gf(
             pad_token_id=pad_token_id,
             token_gene_dict=token_gene_dict,
             special_token=True,
-            forward_batch_size=50,
+            forward_batch_size=batch_size,
         )
     else:
         state_embs_dict = get_embs_cpu(
@@ -351,7 +366,7 @@ def get_embedding_gf(
             pad_token_id=pad_token_id,
             token_gene_dict=token_gene_dict,
             special_token=True,
-            forward_batch_size=5
+            forward_batch_size=batch_size
         )
     # Convert embeddings to dataframe
     embeddings_df = pd.DataFrame(state_embs_dict.cpu().numpy())
@@ -731,6 +746,7 @@ def ch_process_args(
 def get_embedding_scgpt(
     bulk_df,
     model_path,
+    batch_size = 10
     max_length=1200
 ):
     """
@@ -742,6 +758,8 @@ def get_embedding_scgpt(
         Expression matrix (samples x genes). 
     model_path : str
         path to model
+    batch_size: int
+        batch size
     """
     adata = sc.AnnData(bulk_df)
     adata.var["gene_name"] = adata.var.index
@@ -765,7 +783,7 @@ def get_embedding_scgpt(
         model_path,
         gene_col="gene_name",
         obs_to_save="sample",
-        batch_size=64,
+        batch_size=batch_size,
         max_length=max_length,
         return_new_adata=True,
     )
