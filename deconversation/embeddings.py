@@ -730,7 +730,8 @@ def ch_process_args(
 # --------------------------------
 def get_embedding_scgpt(
     bulk_df,
-    model_path
+    model_path,
+    max_length=1200
 ):
     """
     Function to extract scGPT embeddings 
@@ -746,12 +747,26 @@ def get_embedding_scgpt(
     adata.var["gene_name"] = adata.var.index
     adata.obs["sample"] = adata.obs.index
     
+    # ensure top expr genes are kept, instead of sampling
+    n_keep = max_length - 1
+    X = adata.X.toarray() if hasattr(adata.X, "toarray") else adata.X.copy()
+    for i in range(X.shape[0]):
+        row = X[i]
+        nonzero = np.nonzero(row)[0]
+        if len(nonzero) > n_keep:
+            top_idx = nonzero[np.argsort(row[nonzero])[::-1][:n_keep]]
+            drop = np.ones(len(row), dtype=bool)
+            drop[top_idx] = False
+            row[drop] = 0
+    adata.X = X
+
     embed_adata = scg.tasks.embed_data(
         adata,
         model_path,
         gene_col="gene_name",
         obs_to_save="sample",
         batch_size=64,
+        max_length=max_length,
         return_new_adata=True,
     )
     embeddings_df = pd.DataFrame(embed_adata.X)
