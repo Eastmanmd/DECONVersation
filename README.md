@@ -83,7 +83,7 @@ singularity exec --nv \
 
 - [DECONVersation on bulk RNA-seq using Geneformer](tutorials/run_deconversation_on_bulk_geneformer.ipynb): Extract embeddings and deconvolute on bulk against a single cell reference.
 - [DECONVersation on pseudobulk using Geneformer](tutorials/run_deconversation_on_pseudobulk_data.ipynb): Validate deconvolution using pseudobulk data.
-- [Fine-tune geneformer for cell type classification](tutorials/finetune_geneformer_for_cell_type_classification.ipynb): Fine-tune geneformer for cell type classification 
+- [Fine-tuning geneformer for cell type classification](tutorials/finetune_geneformer_for_cell_type_classification.ipynb): Fine-tune geneformer for cell type classification 
 - [Extracting attention weights using DECONVersation](tutorials/extract_attention_weights.ipynb): Extract scFM attention weights (Geneformer, scGPT & cellHermes)
 
 ---
