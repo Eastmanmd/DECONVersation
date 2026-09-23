@@ -746,7 +746,7 @@ def ch_process_args(
 def get_embedding_scgpt(
     bulk_df,
     model_path,
-    batch_size = 10
+    batch_size = 10,
     max_length=1200
 ):
     """
