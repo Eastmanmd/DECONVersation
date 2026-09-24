@@ -22,7 +22,7 @@ DECONVersation enables end-to-end deconvolution through a set of easy-to-use fun
 DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground truths and 2 pseudobulk dataset, spanning diverse tissue types and experimental conditions, to evaluate deconvolution performance and generalizability.
 
 <h1 align="left">
-  <img src="https://raw.githubusercontent.com/Eastmanmd/DECONVersation/main/docs/full_bench_more_all_8.png" width="900">
+  <img src="https://raw.githubusercontent.com/Eastmanmd/DECONVersation/main/docs/full_bench.png" width="900">
 </h1>
 
 <b> Summary </b> <br>
