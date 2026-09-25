@@ -6,6 +6,7 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/release/python-380/)
 [![Downloads](https://static.pepy.tech/personalized-badge/deconversation?period=total&units=none&left_text=downloads&left_color=grey&right_color=blue)](https://pypi.org/project/DECONVersation/)
 [![Github action](https://github.com/Eastmanmd/DECONVersation/actions/workflows/python-app.yml/badge.svg)](https://github.com/Eastmanmd/DECONVersation/tree/main/envs)
+[![Zenodo](https://img.shields.io/badge/Zenodo-DOI-f5de53?&color=f5de53)](https://zenodo.org/records/22949405)
 
 DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. This takes advantage of the strengths of scFMs in faithfully representing transcriptomes, learning meaningful biological networks, and minimizing batch effect and noise. Currently, cell embeddings from [Geneformer](https://huggingface.co/ctheodoris/Geneformer), [Cell2Sentence](https://github.com/vandijklab/cell2sentence), [CellHermes](https://github.com/theislab/CellHermes), and [scGPT](https://github.com/bowang-lab/scGPT) are supported (+PCA and scVI for comparison). 
 
