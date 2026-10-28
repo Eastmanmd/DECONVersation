@@ -1,6 +1,3 @@
-> ⚠️ **REPOSITORY MOVED**
-> This project has moved to [github.com/nygenome/DECONVersation]([https://github.com/company-org/repo](https://github.com/nygenome/DECONVersation)). Please update your bookmarks and remotes.
-> 
 <h1 align="left">
   <img src="https://raw.githubusercontent.com/Eastmanmd/DECONVersation/main/docs/deconversation.png" width="500">
 </h1>
