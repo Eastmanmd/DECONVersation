@@ -1,5 +1,5 @@
 <h1 align="left">
-  <img src="https://raw.githubusercontent.com/Eastmanmd/DECONVersation/main/docs/deconversation.png" width="500">
+  <img src="docs/deconversation.png" width="500" alt="DECONVersation Logo">
 </h1>
 
 [![PyPI version](https://img.shields.io/pypi/v/DECONVersation.svg)](https://pypi.org/project/DECONVersation/)
