@@ -1,5 +1,5 @@
-> ⚠️ **REPOSITORY MOVED**
-> This project has moved to [github.com/nygenome/DECONVersation](https://github.com/nygenome/DECONVersation). Please update your bookmarks and remotes.
+⚠️ **REPOSITORY MOVED**
+This project has moved to [github.com/nygenome/DECONVersation](https://github.com/nygenome/DECONVersation). Please update your bookmarks and remotes.
 
 <h1 align="left">
   <img src="docs/deconversation.png" width="500" alt="DECONVersation Logo">
